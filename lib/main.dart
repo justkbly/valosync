@@ -608,7 +608,7 @@ class HomeTab extends StatelessWidget {
           
           SizedBox(height: 16),
           
-          MatchCard('Ascent', '13-9', true, '24/15/8', 'Jett'),
+          MatchCard('Sunset', '13-9', true, '24/15/8', 'Jett'),
           MatchCard('Bind', '11-13', false, '18/17/5', 'Sage'),
           MatchCard('Haven', '13-7', true, '31/12/6', 'Reyna'),
           
