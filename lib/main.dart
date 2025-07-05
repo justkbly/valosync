@@ -628,7 +628,7 @@ class HomeTab extends StatelessWidget {
                 SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    'Demo data - Real integration pending Riot API approval.',
+                    'Demo data - Real integration pending Riot API approvala',
                     style: TextStyle(color: Colors.white, fontSize: 12),
                   ),
                 ),
