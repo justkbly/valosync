@@ -63,132 +63,39 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
   
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: AnimatedSwitcher(
-        duration: Duration(milliseconds: 300),
-        transitionBuilder: (Widget child, Animation<double> animation) {
-          return FadeTransition(
-            opacity: animation,
-            child: SlideTransition(
-              position: Tween<Offset>(
-                begin: Offset(0.1, 0),
-                end: Offset.zero,
-              ).animate(CurvedAnimation(
-                parent: animation,
-                curve: Curves.easeOutCubic,
-              )),
-              child: child,
+    return DefaultTabController(
+      length: 5,
+      child: Scaffold(
+        appBar: PreferredSize(
+          preferredSize: Size.fromHeight(48),
+          child: Container(
+            color: Color(0xFF1e2328),
+            child: TabBar(
+              indicatorColor: Color(0xFFff4655),
+              labelColor: Color(0xFFff4655),
+              unselectedLabelColor: Color(0xFFFF6666),
+              tabs: [
+                Tab(icon: Icon(Icons.home_rounded, size: 20), text: 'Home'),
+                Tab(icon: Icon(Icons.analytics_rounded, size: 20), text: 'Stats'),
+                Tab(icon: Icon(Icons.storefront_rounded, size: 20), text: 'Store'),
+                Tab(icon: Icon(Icons.people_rounded, size: 20), text: 'Social'),
+                Tab(icon: Icon(Icons.settings_rounded, size: 20), text: 'Settings'),
+              ],
             ),
-          );
-        },
-        child: getTabContent(),
-      ),
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Color(0xFF1e2328).withOpacity(0.8),
-              Color(0xFF1e2328),
-            ],
           ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.3),
-              blurRadius: 20,
-              offset: Offset(0, -5),
-            ),
-          ],
         ),
-        child: BottomNavigationBar(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          selectedItemColor: Color(0xFFff4655),
-          unselectedItemColor: Color(0xFF666),
-          type: BottomNavigationBarType.fixed,
-          currentIndex: currentIndex,
-          onTap: (i) {
-            HapticFeedback.lightImpact();
-            setState(() => currentIndex = i);
-          },
-          selectedLabelStyle: TextStyle(fontWeight: FontWeight.w600),
-          items: [
-            BottomNavigationBarItem(
-              icon: AnimatedContainer(
-                duration: Duration(milliseconds: 200),
-                padding: EdgeInsets.all(currentIndex == 0 ? 8 : 4),
-                decoration: BoxDecoration(
-                  color: currentIndex == 0 ? Color(0xFFff4655).withOpacity(0.1) : Colors.transparent,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(Icons.home_rounded),
-              ),
-              label: 'Home',
-            ),
-            BottomNavigationBarItem(
-              icon: AnimatedContainer(
-                duration: Duration(milliseconds: 200),
-                padding: EdgeInsets.all(currentIndex == 1 ? 8 : 4),
-                decoration: BoxDecoration(
-                  color: currentIndex == 1 ? Color(0xFFff4655).withOpacity(0.1) : Colors.transparent,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(Icons.analytics_rounded),
-              ),
-              label: 'Stats',
-            ),
-            BottomNavigationBarItem(
-              icon: AnimatedContainer(
-                duration: Duration(milliseconds: 200),
-                padding: EdgeInsets.all(currentIndex == 2 ? 8 : 4),
-                decoration: BoxDecoration(
-                  color: currentIndex == 2 ? Color(0xFFff4655).withOpacity(0.1) : Colors.transparent,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(Icons.storefront_rounded),
-              ),
-              label: 'Store',
-            ),
-            BottomNavigationBarItem(
-              icon: AnimatedContainer(
-                duration: Duration(milliseconds: 200),
-                padding: EdgeInsets.all(currentIndex == 3 ? 8 : 4),
-                decoration: BoxDecoration(
-                  color: currentIndex == 3 ? Color(0xFFff4655).withOpacity(0.1) : Colors.transparent,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(Icons.people_rounded),
-              ),
-              label: 'Social',
-            ),
-            BottomNavigationBarItem(
-              icon: AnimatedContainer(
-                duration: Duration(milliseconds: 200),
-                padding: EdgeInsets.all(currentIndex == 4 ? 8 : 4),
-                decoration: BoxDecoration(
-                  color: currentIndex == 4 ? Color(0xFFff4655).withOpacity(0.1) : Colors.transparent,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(Icons.settings_rounded),
-              ),
-              label: 'Settings',
-            ),
+        body: TabBarView(
+          physics: BouncingScrollPhysics(),
+          children: [
+            LandingPage(),
+            StatsTab(),
+            StoreTab(),
+            SocialTab(),
+            SettingsTab(),
           ],
         ),
       ),
     );
-  }
-  
-  Widget getTabContent() {
-    switch (currentIndex) {
-      case 0: return LandingPage(key: ValueKey(0));
-      case 1: return StatsTab(key: ValueKey(1));
-      case 2: return StoreTab(key: ValueKey(2));
-      case 3: return SocialTab(key: ValueKey(3));
-      case 4: return SettingsTab(key: ValueKey(4));
-      default: return LandingPage(key: ValueKey(0));
-    }
   }
 }
 
@@ -254,81 +161,94 @@ class _LandingPageState extends State<LandingPage> with TickerProviderStateMixin
           // Header
           SliverToBoxAdapter(
             child: Container(
-              padding: EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              child: Column(
                 children: [
                   Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Container(
-                        padding: EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [Color(0xFFff4655), Color(0xFFe63946)],
-                          ),
-                          borderRadius: BorderRadius.circular(12),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Color(0xFFff4655).withOpacity(0.3),
-                              blurRadius: 8,
-                              offset: Offset(0, 2),
-                            ),
-                          ],
-                        ),
-                        child: Text('🎯', style: TextStyle(fontSize: 20)),
-                      ),
-                      SizedBox(width: 12),
-                      Text(
-                        'ValoSync',
-                        style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFFff4655),
-                        ),
-                      ),
-                    ],
-                  ),
-                  Row(
-                    children: [
-                      _buildHeaderButton('About', () => Navigator.pushNamed(context, '/about')),
-                      SizedBox(width: 8),
-                      _buildHeaderButton('Privacy', () => Navigator.pushNamed(context, '/privacy')),
-                      SizedBox(width: 12),
-                      Container(
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [Color(0xFFff4655), Color(0xFFe63946)],
-                          ),
-                          borderRadius: BorderRadius.circular(12),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Color(0xFFff4655).withOpacity(0.3),
-                              blurRadius: 8,
-                              offset: Offset(0, 2),
-                            ),
-                          ],
-                        ),
-                        child: Material(
-                          color: Colors.transparent,
-                          child: InkWell(
-                            borderRadius: BorderRadius.circular(12),
-                            onTap: () {
-                              HapticFeedback.lightImpact();
-                              Navigator.pushNamed(context, '/app');
-                            },
-                            child: Padding(
-                              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      Flexible(
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              padding: EdgeInsets.all(4),
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: [Color(0xFFff4655), Color(0xFFe63946)],
+                                ),
+                                borderRadius: BorderRadius.circular(6),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Color(0xFFff4655).withOpacity(0.3),
+                                    blurRadius: 4,
+                                    offset: Offset(0, 2),
+                                  ),
+                                ],
+                              ),
+                              child: Text('🎯', style: TextStyle(fontSize: 14)),
+                                                          ),
+                              SizedBox(width: 6),
+                              Flexible(
                               child: Text(
-                                'Launch App',
+                                'ValoSync',
                                 style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w600,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFFff4655),
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Flexible(
+                        child: Container(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [Color(0xFFff4655), Color(0xFFe63946)],
+                            ),
+                            borderRadius: BorderRadius.circular(8),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Color(0xFFff4655).withOpacity(0.3),
+                                blurRadius: 6,
+                                offset: Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Material(
+                            color: Colors.transparent,
+                            child: InkWell(
+                              borderRadius: BorderRadius.circular(8),
+                              onTap: () {
+                                HapticFeedback.lightImpact();
+                                Navigator.pushNamed(context, '/app');
+                              },
+                              child: Padding(
+                                padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                child: Text(
+                                  'Launch',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 14,
+                                  ),
                                 ),
                               ),
                             ),
                           ),
                         ),
                       ),
+                    ],
+                  ),
+                  SizedBox(height: 6),
+                  Wrap(
+                    spacing: 6,
+                    children: [
+                      _buildHeaderButton('About', () => Navigator.pushNamed(context, '/about')),
+                      _buildHeaderButton('Privacy', () => Navigator.pushNamed(context, '/privacy')),
                     ],
                   ),
                 ],
@@ -346,7 +266,7 @@ class _LandingPageState extends State<LandingPage> with TickerProviderStateMixin
                   child: Opacity(
                     opacity: _heroAnimation.value,
                     child: Container(
-                      padding: EdgeInsets.all(40),
+                      padding: EdgeInsets.all(MediaQuery.of(context).size.width < 600 ? 20 : 40),
                       child: Column(
                         children: [
                           ShaderMask(
@@ -356,33 +276,39 @@ class _LandingPageState extends State<LandingPage> with TickerProviderStateMixin
                             child: Text(
                               'Ultimate Valorant Companion',
                               style: TextStyle(
-                                fontSize: 48,
+                                fontSize: MediaQuery.of(context).size.width < 600 ? 28 : 48,
                                 fontWeight: FontWeight.bold,
                                 color: Colors.white,
+                                height: 1.2,
                               ),
                               textAlign: TextAlign.center,
+                              maxLines: 3,
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
                           SizedBox(height: 16),
                           Text(
                             'Track your performance, manage your store, and build better teams with the most comprehensive Valorant companion app.',
                             style: TextStyle(
-                              fontSize: 18,
+                              fontSize: MediaQuery.of(context).size.width < 600 ? 14 : 18,
                               color: Color(0xFF9ca3af),
                               height: 1.6,
                             ),
                             textAlign: TextAlign.center,
+                            maxLines: 4,
+                            overflow: TextOverflow.ellipsis,
                           ),
-                          SizedBox(height: 32),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
+                          SizedBox(height: 24),
+                          Wrap(
+                            alignment: WrapAlignment.center,
+                            spacing: 12,
+                            runSpacing: 12,
                             children: [
                               _buildHeroButton(
                                 'Try Demo Now',
                                 true,
                                 () => Navigator.pushNamed(context, '/app'),
                               ),
-                              SizedBox(width: 16),
                               _buildHeroButton(
                                 'Learn More',
                                 false,
@@ -409,7 +335,7 @@ class _LandingPageState extends State<LandingPage> with TickerProviderStateMixin
                   child: Opacity(
                     opacity: _featuresAnimation.value,
                     child: Container(
-                      padding: EdgeInsets.all(40),
+                      padding: EdgeInsets.all(MediaQuery.of(context).size.width < 600 ? 20 : 40),
                       child: Column(
                         children: [
                           ShaderMask(
@@ -419,20 +345,23 @@ class _LandingPageState extends State<LandingPage> with TickerProviderStateMixin
                             child: Text(
                               'Powerful Features',
                               style: TextStyle(
-                                fontSize: 36,
+                                fontSize: MediaQuery.of(context).size.width < 600 ? 24 : 36,
                                 fontWeight: FontWeight.bold,
                                 color: Colors.white,
                               ),
+                              textAlign: TextAlign.center,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
-                          SizedBox(height: 40),
+                          SizedBox(height: MediaQuery.of(context).size.width < 600 ? 24 : 40),
                           GridView.count(
-                            crossAxisCount: 2,
+                            crossAxisCount: MediaQuery.of(context).size.width < 600 ? 1 : 2,
                             shrinkWrap: true,
                             physics: NeverScrollableScrollPhysics(),
-                            crossAxisSpacing: 20,
-                            mainAxisSpacing: 20,
-                            childAspectRatio: 1.1,
+                            crossAxisSpacing: 16,
+                            mainAxisSpacing: 16,
+                            childAspectRatio: MediaQuery.of(context).size.width < 600 ? 2.5 : 1.1,
                             children: [
                               _buildFeatureCard(
                                 Icons.trending_up_rounded,
@@ -442,7 +371,7 @@ class _LandingPageState extends State<LandingPage> with TickerProviderStateMixin
                               ),
                               _buildFeatureCard(
                                 Icons.storefront_rounded,
-                                'Smart Store Manager',
+                                'Smartest Store Manager',
                                 'Never miss your favorite skins with intelligent alerts and spending analytics.',
                                 1,
                               ),
@@ -472,11 +401,13 @@ class _LandingPageState extends State<LandingPage> with TickerProviderStateMixin
           // Footer
           SliverToBoxAdapter(
             child: Container(
-              padding: EdgeInsets.all(40),
+              padding: EdgeInsets.all(MediaQuery.of(context).size.width < 600 ? 20 : 40),
               child: Column(
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
+                  Wrap(
+                    alignment: WrapAlignment.center,
+                    spacing: 16,
+                    runSpacing: 8,
                     children: [
                       _buildFooterLink('About', () => Navigator.pushNamed(context, '/about')),
                       _buildFooterLink('Privacy Policy', () => Navigator.pushNamed(context, '/privacy')),
@@ -486,12 +417,18 @@ class _LandingPageState extends State<LandingPage> with TickerProviderStateMixin
                   SizedBox(height: 16),
                   Text(
                     '© 2025 ValoSync. Not affiliated with Riot Games, Inc.',
-                    style: TextStyle(color: Color(0xFF666), fontSize: 12),
+                    style: TextStyle(color: Color(0xFF666), fontSize: 11),
+                    textAlign: TextAlign.center,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                   ),
                   SizedBox(height: 8),
                   Text(
                     'Built with ❤️ for the Valorant community',
-                    style: TextStyle(color: Color(0xFF666), fontSize: 12),
+                    style: TextStyle(color: Color(0xFF666), fontSize: 11),
+                    textAlign: TextAlign.center,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ],
               ),
@@ -506,19 +443,22 @@ class _LandingPageState extends State<LandingPage> with TickerProviderStateMixin
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(6),
         onTap: () {
           HapticFeedback.lightImpact();
           onTap();
         },
         child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
           child: Text(
             text,
             style: TextStyle(
               color: Colors.white,
               fontWeight: FontWeight.w500,
+              fontSize: 12,
             ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
         ),
       ),
@@ -526,42 +466,52 @@ class _LandingPageState extends State<LandingPage> with TickerProviderStateMixin
   }
 
   Widget _buildHeroButton(String text, bool isPrimary, VoidCallback onTap) {
-    return Container(
-      decoration: BoxDecoration(
-        gradient: isPrimary ? LinearGradient(
-          colors: [Color(0xFFff4655), Color(0xFFe63946)],
-        ) : null,
-        border: isPrimary ? null : Border.all(color: Color(0xFF53f9ff), width: 2),
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: isPrimary ? [
-          BoxShadow(
-            color: Color(0xFFff4655).withOpacity(0.3),
-            blurRadius: 12,
-            offset: Offset(0, 4),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isSmallScreen = MediaQuery.of(context).size.width < 600;
+        return Container(
+          decoration: BoxDecoration(
+            gradient: isPrimary ? LinearGradient(
+              colors: [Color(0xFFff4655), Color(0xFFe63946)],
+            ) : null,
+            border: isPrimary ? null : Border.all(color: Color(0xFF53f9ff), width: isSmallScreen ? 1 : 2),
+            borderRadius: BorderRadius.circular(isSmallScreen ? 12 : 16),
+            boxShadow: isPrimary ? [
+              BoxShadow(
+                color: Color(0xFFff4655).withOpacity(0.3),
+                blurRadius: isSmallScreen ? 8 : 12,
+                offset: Offset(0, isSmallScreen ? 2 : 4),
+              ),
+            ] : null,
           ),
-        ] : null,
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(16),
-          onTap: () {
-            HapticFeedback.mediumImpact();
-            onTap();
-          },
-          child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-            child: Text(
-              text,
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: isPrimary ? Colors.white : Color(0xFF53f9ff),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              borderRadius: BorderRadius.circular(isSmallScreen ? 12 : 16),
+              onTap: () {
+                HapticFeedback.mediumImpact();
+                onTap();
+              },
+              child: Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: isSmallScreen ? 24 : 32, 
+                  vertical: isSmallScreen ? 12 : 16
+                ),
+                child: Text(
+                  text,
+                  style: TextStyle(
+                    fontSize: isSmallScreen ? 14 : 16,
+                    fontWeight: FontWeight.w600,
+                    color: isPrimary ? Colors.white : Color(0xFF53f9ff),
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 
@@ -570,12 +520,13 @@ class _LandingPageState extends State<LandingPage> with TickerProviderStateMixin
       duration: Duration(milliseconds: 600 + (index * 100)),
       tween: Tween<double>(begin: 0.0, end: 1.0),
       builder: (context, double value, child) {
+        final isSmallScreen = MediaQuery.of(context).size.width < 600;
         return Transform.translate(
           offset: Offset(0, 30 * (1 - value)),
           child: Opacity(
             opacity: value,
             child: Container(
-              padding: EdgeInsets.all(24),
+              padding: EdgeInsets.all(isSmallScreen ? 16 : 24),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.topLeft,
@@ -585,7 +536,7 @@ class _LandingPageState extends State<LandingPage> with TickerProviderStateMixin
                     Color(0xFF252a30),
                   ],
                 ),
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(isSmallScreen ? 16 : 20),
                 border: Border.all(
                   color: Color(0xFF53f9ff).withOpacity(0.3),
                   width: 1,
@@ -593,50 +544,57 @@ class _LandingPageState extends State<LandingPage> with TickerProviderStateMixin
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withOpacity(0.2),
-                    blurRadius: 10,
-                    offset: Offset(0, 4),
+                    blurRadius: isSmallScreen ? 6 : 10,
+                    offset: Offset(0, isSmallScreen ? 2 : 4),
                   ),
                 ],
               ),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   Container(
-                    padding: EdgeInsets.all(16),
+                    padding: EdgeInsets.all(isSmallScreen ? 12 : 16),
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         colors: [Color(0xFF53f9ff), Color(0xFF4cc9f0)],
                       ),
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(isSmallScreen ? 12 : 16),
                       boxShadow: [
                         BoxShadow(
                           color: Color(0xFF53f9ff).withOpacity(0.3),
-                          blurRadius: 8,
+                          blurRadius: isSmallScreen ? 4 : 8,
                           offset: Offset(0, 2),
                         ),
                       ],
                     ),
-                    child: Icon(icon, size: 32, color: Colors.white),
+                    child: Icon(icon, size: isSmallScreen ? 24 : 32, color: Colors.white),
                   ),
-                  SizedBox(height: 16),
+                  SizedBox(height: isSmallScreen ? 12 : 16),
                   Text(
                     title,
                     style: TextStyle(
-                      fontSize: 18,
+                      fontSize: isSmallScreen ? 16 : 18,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
                     ),
                     textAlign: TextAlign.center,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  SizedBox(height: 8),
-                  Text(
-                    description,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Color(0xFF9ca3af),
-                      height: 1.4,
+                  SizedBox(height: isSmallScreen ? 6 : 8),
+                  Flexible(
+                    child: Text(
+                      description,
+                      style: TextStyle(
+                        fontSize: isSmallScreen ? 12 : 14,
+                        color: Color(0xFF9ca3af),
+                        height: 1.3,
+                      ),
+                      textAlign: TextAlign.center,
+                      maxLines: isSmallScreen ? 3 : 4,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    textAlign: TextAlign.center,
                   ),
                 ],
               ),
@@ -1048,199 +1006,39 @@ class _DashboardState extends State<Dashboard> with TickerProviderStateMixin {
   
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Color(0xFF1e2328),
-        elevation: 0,
-        flexibleSpace: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.centerLeft,
-              end: Alignment.centerRight,
-              colors: [
-                Color(0xFF1e2328),
-                Color(0xFF252a30),
+    return DefaultTabController(
+      length: 5,
+      child: Scaffold(
+        appBar: PreferredSize(
+          preferredSize: Size.fromHeight(48),
+          child: Container(
+            color: Color(0xFF1e2328),
+            child: TabBar(
+              indicatorColor: Color(0xFFff4655),
+              labelColor: Color(0xFFff4655),
+              unselectedLabelColor: Color(0xFFFF6666),
+              tabs: [
+                Tab(icon: Icon(Icons.home_rounded, size: 20), text: 'Home'),
+                Tab(icon: Icon(Icons.analytics_rounded, size: 20), text: 'Stats'),
+                Tab(icon: Icon(Icons.storefront_rounded, size: 20), text: 'Store'),
+                Tab(icon: Icon(Icons.people_rounded, size: 20), text: 'Social'),
+                Tab(icon: Icon(Icons.settings_rounded, size: 20), text: 'Settings'),
               ],
             ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.2),
-                blurRadius: 8,
-                offset: Offset(0, 2),
-              ),
-            ],
           ),
         ),
-        title: Row(
+        body: TabBarView(
+          physics: BouncingScrollPhysics(),
           children: [
-            Container(
-              padding: EdgeInsets.all(6),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [Color(0xFFff4655), Color(0xFFe63946)],
-                ),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Text('🎯', style: TextStyle(fontSize: 16)),
-            ),
-            SizedBox(width: 12),
-            Text(
-              'ValoSync',
-              style: TextStyle(
-                color: Color(0xFFff4655),
-                fontWeight: FontWeight.w600,
-                fontSize: 20,
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          Container(
-            margin: EdgeInsets.only(right: 8),
-            decoration: BoxDecoration(
-              color: Color(0xFF53f9ff).withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: IconButton(
-              onPressed: () => HapticFeedback.lightImpact(),
-              icon: Icon(Icons.notifications_rounded, color: Color(0xFF53f9ff)),
-            ),
-          ),
-          Container(
-            margin: EdgeInsets.only(right: 16),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: IconButton(
-              onPressed: () => HapticFeedback.lightImpact(),
-              icon: Icon(Icons.settings_rounded, color: Colors.white),
-            ),
-          ),
-        ],
-      ),
-      body: AnimatedSwitcher(
-        duration: Duration(milliseconds: 300),
-        transitionBuilder: (Widget child, Animation<double> animation) {
-          return SlideTransition(
-            position: Tween<Offset>(
-              begin: Offset(0.1, 0),
-              end: Offset.zero,
-            ).animate(CurvedAnimation(
-              parent: animation,
-              curve: Curves.easeOutCubic,
-            )),
-            child: FadeTransition(opacity: animation, child: child),
-          );
-        },
-        child: getTabContent(),
-      ),
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Color(0xFF1e2328).withOpacity(0.8),
-              Color(0xFF1e2328),
-            ],
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.3),
-              blurRadius: 20,
-              offset: Offset(0, -5),
-            ),
-          ],
-        ),
-        child: BottomNavigationBar(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          selectedItemColor: Color(0xFFff4655),
-          unselectedItemColor: Color(0xFF666),
-          type: BottomNavigationBarType.fixed,
-          currentIndex: currentTab,
-          onTap: (i) {
-            HapticFeedback.lightImpact();
-            setState(() => currentTab = i);
-          },
-          selectedLabelStyle: TextStyle(fontWeight: FontWeight.w600),
-          items: [
-            BottomNavigationBarItem(
-              icon: AnimatedContainer(
-                duration: Duration(milliseconds: 200),
-                padding: EdgeInsets.all(currentTab == 0 ? 8 : 4),
-                decoration: BoxDecoration(
-                  color: currentTab == 0 ? Color(0xFFff4655).withOpacity(0.1) : Colors.transparent,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(Icons.home_rounded),
-              ),
-              label: 'Home',
-            ),
-            BottomNavigationBarItem(
-              icon: AnimatedContainer(
-                duration: Duration(milliseconds: 200),
-                padding: EdgeInsets.all(currentTab == 1 ? 8 : 4),
-                decoration: BoxDecoration(
-                  color: currentTab == 1 ? Color(0xFFff4655).withOpacity(0.1) : Colors.transparent,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(Icons.analytics_rounded),
-              ),
-              label: 'Stats',
-            ),
-            BottomNavigationBarItem(
-              icon: AnimatedContainer(
-                duration: Duration(milliseconds: 200),
-                padding: EdgeInsets.all(currentTab == 2 ? 8 : 4),
-                decoration: BoxDecoration(
-                  color: currentTab == 2 ? Color(0xFFff4655).withOpacity(0.1) : Colors.transparent,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(Icons.storefront_rounded),
-              ),
-              label: 'Store',
-            ),
-            BottomNavigationBarItem(
-              icon: AnimatedContainer(
-                duration: Duration(milliseconds: 200),
-                padding: EdgeInsets.all(currentTab == 3 ? 8 : 4),
-                decoration: BoxDecoration(
-                  color: currentTab == 3 ? Color(0xFFff4655).withOpacity(0.1) : Colors.transparent,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(Icons.people_rounded),
-              ),
-              label: 'Social',
-            ),
-            BottomNavigationBarItem(
-              icon: AnimatedContainer(
-                duration: Duration(milliseconds: 200),
-                padding: EdgeInsets.all(currentTab == 4 ? 8 : 4),
-                decoration: BoxDecoration(
-                  color: currentTab == 4 ? Color(0xFFff4655).withOpacity(0.1) : Colors.transparent,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(Icons.settings_rounded),
-              ),
-              label: 'Settings',
-            ),
+            HomeTab(),
+            StatsTab(),
+            StoreTab(),
+            SocialTab(),
+            SettingsTab(),
           ],
         ),
       ),
     );
-  }
-  
-  Widget getTabContent() {
-    switch (currentTab) {
-      case 0: return HomeTab(key: ValueKey(0));
-      case 1: return StatsTab(key: ValueKey(1));
-      case 2: return StoreTab(key: ValueKey(2));
-      case 3: return SocialTab(key: ValueKey(3));
-      case 4: return SettingsTab(key: ValueKey(4));
-      default: return HomeTab(key: ValueKey(0));
-    }
   }
 }
 
