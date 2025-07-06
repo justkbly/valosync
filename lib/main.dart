@@ -76,24 +76,7 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
             SettingsTab(),
           ],
         ),
-        bottomNavigationBar: Material(
-          color: Color(0xFF1e2328),
-          child: SafeArea(
-            top: false,
-            child: TabBar(
-              indicatorColor: Color(0xFFff4655),
-              labelColor: Color(0xFFff4655),
-              unselectedLabelColor: Color(0xFFFF6666),
-              tabs: [
-                Tab(icon: Icon(Icons.home_rounded, size: 20), text: 'Home'),
-                Tab(icon: Icon(Icons.analytics_rounded, size: 20), text: 'Stats'),
-                Tab(icon: Icon(Icons.storefront_rounded, size: 20), text: 'Store'),
-                Tab(icon: Icon(Icons.people_rounded, size: 20), text: 'Social'),
-                Tab(icon: Icon(Icons.settings_rounded, size: 20), text: 'Settings'),
-              ],
-            ),
-          ),
-        ),
+        bottomNavigationBar: buildBottomBar(),
       ),
     );
   }
@@ -119,21 +102,21 @@ class _LandingPageState extends State<LandingPage> with TickerProviderStateMixin
     _scrollController = ScrollController();
     
     _heroController = AnimationController(
-      duration: Duration(milliseconds: 1200),
+      duration: Duration(milliseconds: 1800),
       vsync: this,
     );
     
     _featuresController = AnimationController(
-      duration: Duration(milliseconds: 800),
+      duration: Duration(milliseconds: 1200),
       vsync: this,
     );
     
     _heroAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _heroController, curve: Curves.easeOutCubic),
+      CurvedAnimation(parent: _heroController, curve: Curves.easeOutExpo),
     );
     
     _featuresAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _featuresController, curve: Curves.easeOutCubic),
+      CurvedAnimation(parent: _featuresController, curve: Curves.easeOutBack),
     );
     
     // Start animations
@@ -165,14 +148,14 @@ class _LandingPageState extends State<LandingPage> with TickerProviderStateMixin
               child: Column(
                 children: [
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    mainAxisAlignment: MainAxisAlignment.start,
                     children: [
                       Flexible(
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Container(
-                              padding: EdgeInsets.all(4),
+                              padding: EdgeInsets.all(6),
                               decoration: BoxDecoration(
                                 gradient: LinearGradient(
                                   colors: [Color(0xFFff4655), Color(0xFFe63946)],
@@ -186,14 +169,14 @@ class _LandingPageState extends State<LandingPage> with TickerProviderStateMixin
                                   ),
                                 ],
                               ),
-                              child: Text('🎯', style: TextStyle(fontSize: 14)),
-                                                          ),
-                              SizedBox(width: 6),
-                              Flexible(
+                              child: Text('🎯', style: TextStyle(fontSize: 18)),
+                            ),
+                            SizedBox(width: 6),
+                            Flexible(
                               child: Text(
                                 'ValoSync',
                                 style: TextStyle(
-                                  fontSize: 16,
+                                  fontSize: 20,
                                   fontWeight: FontWeight.bold,
                                   color: Color(0xFFff4655),
                                 ),
@@ -201,44 +184,6 @@ class _LandingPageState extends State<LandingPage> with TickerProviderStateMixin
                               ),
                             ),
                           ],
-                        ),
-                      ),
-                      Flexible(
-                        child: Container(
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: [Color(0xFFff4655), Color(0xFFe63946)],
-                            ),
-                            borderRadius: BorderRadius.circular(8),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Color(0xFFff4655).withOpacity(0.3),
-                                blurRadius: 6,
-                                offset: Offset(0, 2),
-                              ),
-                            ],
-                          ),
-                          child: Material(
-                            color: Colors.transparent,
-                            child: InkWell(
-                              borderRadius: BorderRadius.circular(8),
-                              onTap: () {
-                                HapticFeedback.lightImpact();
-                                Navigator.pushNamed(context, '/app');
-                              },
-                              child: Padding(
-                                padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                                child: Text(
-                                  'Launch',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 14,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
                         ),
                       ),
                     ],
@@ -249,6 +194,7 @@ class _LandingPageState extends State<LandingPage> with TickerProviderStateMixin
                     children: [
                       _buildHeaderButton('About', () => Navigator.pushNamed(context, '/about')),
                       _buildHeaderButton('Privacy', () => Navigator.pushNamed(context, '/privacy')),
+                      _buildHeaderButton('Launch', () => Navigator.pushNamed(context, '/app'), primary: true),
                     ],
                   ),
                 ],
@@ -305,7 +251,7 @@ class _LandingPageState extends State<LandingPage> with TickerProviderStateMixin
                             runSpacing: 12,
                             children: [
                               _buildHeroButton(
-                                'Try Demo Now',
+                                'Try Demo Now!',
                                 true,
                                 () => Navigator.pushNamed(context, '/app'),
                               ),
@@ -330,10 +276,11 @@ class _LandingPageState extends State<LandingPage> with TickerProviderStateMixin
             child: AnimatedBuilder(
               animation: _featuresAnimation,
               builder: (context, child) {
+                final double v = _featuresAnimation.value.clamp(0.0, 1.0);
                 return Transform.translate(
-                  offset: Offset(0, 50 * (1 - _featuresAnimation.value)),
+                  offset: Offset(0, 50 * (1 - v)),
                   child: Opacity(
-                    opacity: _featuresAnimation.value,
+                    opacity: v,
                     child: Container(
                       padding: EdgeInsets.all(MediaQuery.of(context).size.width < 600 ? 20 : 40),
                       child: Column(
@@ -439,7 +386,7 @@ class _LandingPageState extends State<LandingPage> with TickerProviderStateMixin
     );
   }
 
-  Widget _buildHeaderButton(String text, VoidCallback onTap) {
+  Widget _buildHeaderButton(String text, VoidCallback onTap, {bool primary = false}) {
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -449,17 +396,40 @@ class _LandingPageState extends State<LandingPage> with TickerProviderStateMixin
           onTap();
         },
         child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          child: Text(
-            text,
-            style: TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.w500,
-              fontSize: 12,
-            ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
+          padding: EdgeInsets.symmetric(horizontal: primary ? 12 : 8, vertical: 4),
+          child: primary
+              ? Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [Color(0xFFff4655), Color(0xFFe63946)],
+                    ),
+                    borderRadius: BorderRadius.circular(8),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Color(0xFFff4655).withOpacity(0.3),
+                        blurRadius: 6,
+                        offset: Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  child: Text(
+                    text,
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 12,
+                    ),
+                  ),
+                )
+              : Text(
+                  text,
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w500,
+                    fontSize: 12,
+                  ),
+                ),
         ),
       ),
     );
@@ -517,14 +487,16 @@ class _LandingPageState extends State<LandingPage> with TickerProviderStateMixin
 
   Widget _buildFeatureCard(IconData icon, String title, String description, int index) {
     return TweenAnimationBuilder(
-      duration: Duration(milliseconds: 600 + (index * 100)),
+      duration: Duration(milliseconds: 800 + (index * 150)),
       tween: Tween<double>(begin: 0.0, end: 1.0),
+      curve: Curves.easeOutBack,
       builder: (context, double value, child) {
+        final v = value.clamp(0.0, 1.0);
         final isSmallScreen = MediaQuery.of(context).size.width < 600;
         return Transform.translate(
-          offset: Offset(0, 30 * (1 - value)),
+          offset: Offset(0, 30 * (1 - v)),
           child: Opacity(
-            opacity: value,
+            opacity: v,
             child: Container(
               padding: EdgeInsets.all(isSmallScreen ? 16 : 24),
               decoration: BoxDecoration(
@@ -1019,24 +991,7 @@ class _DashboardState extends State<Dashboard> with TickerProviderStateMixin {
             SettingsTab(),
           ],
         ),
-        bottomNavigationBar: Material(
-          color: Color(0xFF1e2328),
-          child: SafeArea(
-            top: false,
-            child: TabBar(
-              indicatorColor: Color(0xFFff4655),
-              labelColor: Color(0xFFff4655),
-              unselectedLabelColor: Color(0xFFFF6666),
-              tabs: [
-                Tab(icon: Icon(Icons.home_rounded, size: 20), text: 'Home'),
-                Tab(icon: Icon(Icons.analytics_rounded, size: 20), text: 'Stats'),
-                Tab(icon: Icon(Icons.storefront_rounded, size: 20), text: 'Store'),
-                Tab(icon: Icon(Icons.people_rounded, size: 20), text: 'Social'),
-                Tab(icon: Icon(Icons.settings_rounded, size: 20), text: 'Settings'),
-              ],
-            ),
-          ),
-        ),
+        bottomNavigationBar: buildBottomBar(),
       ),
     );
   }
@@ -1693,17 +1648,25 @@ class _StoreTabState extends State<StoreTab> with TickerProviderStateMixin {
           ),
           SizedBox(height: 24),
           Expanded(
-            child: GridView.count(
-              crossAxisCount: 2,
-              crossAxisSpacing: 16,
-              mainAxisSpacing: 16,
-              physics: BouncingScrollPhysics(),
-              children: [
-                ModernStoreItem('Phantom', 'Ion', '1775 VP', true),
-                ModernStoreItem('Vandal', 'Prime', '1775 VP', false),
-                ModernStoreItem('Operator', 'Dragon', '2175 VP', false),
-                ModernStoreItem('Sheriff', 'Reaver', '1775 VP', true),
-              ],
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final isNarrow = constraints.maxWidth < 480;
+                final columns = isNarrow ? 1 : 2;
+                final aspect = isNarrow ? 1.6 : 1.1;
+                return GridView.count(
+                  crossAxisCount: columns,
+                  crossAxisSpacing: 16,
+                  mainAxisSpacing: 16,
+                  childAspectRatio: aspect,
+                  physics: BouncingScrollPhysics(),
+                  children: [
+                    ModernStoreItem('Phantom', 'Ion', '1775 VP', true),
+                    ModernStoreItem('Vandal', 'Prime', '1775 VP', false),
+                    ModernStoreItem('Operator', 'Dragon', '2175 VP', false),
+                    ModernStoreItem('Sheriff', 'Reaver', '1775 VP', true),
+                  ],
+                );
+              },
             ),
           ),
         ],
@@ -1720,8 +1683,9 @@ class ModernStoreItem extends StatelessWidget {
   
   @override
   Widget build(BuildContext context) {
+    final isSmall = MediaQuery.of(context).size.width < 480;
     return Container(
-      padding: EdgeInsets.all(20),
+      padding: EdgeInsets.all(isSmall ? 12 : 20),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
@@ -1793,7 +1757,7 @@ class ModernStoreItem extends StatelessWidget {
                 ),
             ],
           ),
-          SizedBox(height: 16),
+          SizedBox(height: isSmall ? 8 : 16),
           Text(
             weapon,
             style: TextStyle(
@@ -1809,7 +1773,7 @@ class ModernStoreItem extends StatelessWidget {
               fontSize: 12,
             ),
           ),
-          SizedBox(height: 12),
+          SizedBox(height: isSmall ? 6 : 12),
           Container(
             padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
@@ -2512,4 +2476,26 @@ class TermsPage extends StatelessWidget {
       ],
     );
   }
+}
+
+// Global helper to build bottom TabBar consistently across screens
+Widget buildBottomBar() {
+  return Material(
+    color: const Color(0xFF1e2328),
+    child: SafeArea(
+      top: false,
+      child: TabBar(
+        indicatorColor: const Color(0xFFff4655),
+        labelColor: const Color(0xFFff4655),
+        unselectedLabelColor: const Color(0xFFFF6666),
+        tabs: const [
+          Tab(icon: Icon(Icons.home_rounded, size: 20), text: 'Home'),
+          Tab(icon: Icon(Icons.analytics_rounded, size: 20), text: 'Stats'),
+          Tab(icon: Icon(Icons.storefront_rounded, size: 20), text: 'Store'),
+          Tab(icon: Icon(Icons.people_rounded, size: 20), text: 'Social'),
+          Tab(icon: Icon(Icons.settings_rounded, size: 20), text: 'Settings'),
+        ],
+      ),
+    ),
+  );
 }
