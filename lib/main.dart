@@ -11,6 +11,12 @@ class ValoSyncApp extends StatelessWidget {
       theme: ThemeData(
         primaryColor: Color(0xFFff4655),
         scaffoldBackgroundColor: Color(0xFF0f1923),
+        pageTransitionsTheme: PageTransitionsTheme(
+          builders: {
+            TargetPlatform.android: CupertinoPageTransitionsBuilder(),
+            TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+          },
+        ),
       ),
       initialRoute: '/',
       routes: {
@@ -31,270 +37,634 @@ class MainApp extends StatefulWidget {
   _MainAppState createState() => _MainAppState();
 }
 
-class _MainAppState extends State<MainApp> {
+class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
   int currentIndex = 0;
+  late AnimationController _fadeController;
+  late Animation<double> _fadeAnimation;
+  
+  @override
+  void initState() {
+    super.initState();
+    _fadeController = AnimationController(
+      duration: Duration(milliseconds: 300),
+      vsync: this,
+    );
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _fadeController, curve: Curves.easeInOut),
+    );
+    _fadeController.forward();
+  }
+
+  @override
+  void dispose() {
+    _fadeController.dispose();
+    super.dispose();
+  }
   
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: getTabContent(),
-      bottomNavigationBar: BottomNavigationBar(
-        backgroundColor: Color(0xFF1e2328),
-        selectedItemColor: Color(0xFFff4655),
-        unselectedItemColor: Color(0xFF666),
-        type: BottomNavigationBarType.fixed,
-        currentIndex: currentIndex,
-        onTap: (i) => setState(() => currentIndex = i),
-        items: [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.bar_chart), label: 'Stats'),
-          BottomNavigationBarItem(icon: Icon(Icons.store), label: 'Store'),
-          BottomNavigationBarItem(icon: Icon(Icons.people), label: 'Social'),
-          BottomNavigationBarItem(icon: Icon(Icons.settings), label: 'Settings'),
-        ],
+      body: AnimatedSwitcher(
+        duration: Duration(milliseconds: 300),
+        transitionBuilder: (Widget child, Animation<double> animation) {
+          return FadeTransition(
+            opacity: animation,
+            child: SlideTransition(
+              position: Tween<Offset>(
+                begin: Offset(0.1, 0),
+                end: Offset.zero,
+              ).animate(CurvedAnimation(
+                parent: animation,
+                curve: Curves.easeOutCubic,
+              )),
+              child: child,
+            ),
+          );
+        },
+        child: getTabContent(),
+      ),
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Color(0xFF1e2328).withOpacity(0.8),
+              Color(0xFF1e2328),
+            ],
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.3),
+              blurRadius: 20,
+              offset: Offset(0, -5),
+            ),
+          ],
+        ),
+        child: BottomNavigationBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          selectedItemColor: Color(0xFFff4655),
+          unselectedItemColor: Color(0xFF666),
+          type: BottomNavigationBarType.fixed,
+          currentIndex: currentIndex,
+          onTap: (i) {
+            HapticFeedback.lightImpact();
+            setState(() => currentIndex = i);
+          },
+          selectedLabelStyle: TextStyle(fontWeight: FontWeight.w600),
+          items: [
+            BottomNavigationBarItem(
+              icon: AnimatedContainer(
+                duration: Duration(milliseconds: 200),
+                padding: EdgeInsets.all(currentIndex == 0 ? 8 : 4),
+                decoration: BoxDecoration(
+                  color: currentIndex == 0 ? Color(0xFFff4655).withOpacity(0.1) : Colors.transparent,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(Icons.home_rounded),
+              ),
+              label: 'Home',
+            ),
+            BottomNavigationBarItem(
+              icon: AnimatedContainer(
+                duration: Duration(milliseconds: 200),
+                padding: EdgeInsets.all(currentIndex == 1 ? 8 : 4),
+                decoration: BoxDecoration(
+                  color: currentIndex == 1 ? Color(0xFFff4655).withOpacity(0.1) : Colors.transparent,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(Icons.analytics_rounded),
+              ),
+              label: 'Stats',
+            ),
+            BottomNavigationBarItem(
+              icon: AnimatedContainer(
+                duration: Duration(milliseconds: 200),
+                padding: EdgeInsets.all(currentIndex == 2 ? 8 : 4),
+                decoration: BoxDecoration(
+                  color: currentIndex == 2 ? Color(0xFFff4655).withOpacity(0.1) : Colors.transparent,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(Icons.storefront_rounded),
+              ),
+              label: 'Store',
+            ),
+            BottomNavigationBarItem(
+              icon: AnimatedContainer(
+                duration: Duration(milliseconds: 200),
+                padding: EdgeInsets.all(currentIndex == 3 ? 8 : 4),
+                decoration: BoxDecoration(
+                  color: currentIndex == 3 ? Color(0xFFff4655).withOpacity(0.1) : Colors.transparent,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(Icons.people_rounded),
+              ),
+              label: 'Social',
+            ),
+            BottomNavigationBarItem(
+              icon: AnimatedContainer(
+                duration: Duration(milliseconds: 200),
+                padding: EdgeInsets.all(currentIndex == 4 ? 8 : 4),
+                decoration: BoxDecoration(
+                  color: currentIndex == 4 ? Color(0xFFff4655).withOpacity(0.1) : Colors.transparent,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(Icons.settings_rounded),
+              ),
+              label: 'Settings',
+            ),
+          ],
+        ),
       ),
     );
   }
   
   Widget getTabContent() {
     switch (currentIndex) {
-      case 0: return LandingPage();
-      case 1: return StatsTab();
-      case 2: return StoreTab();
-      case 3: return SocialTab();
-      case 4: return SettingsTab();
-      default: return LandingPage();
+      case 0: return LandingPage(key: ValueKey(0));
+      case 1: return StatsTab(key: ValueKey(1));
+      case 2: return StoreTab(key: ValueKey(2));
+      case 3: return SocialTab(key: ValueKey(3));
+      case 4: return SettingsTab(key: ValueKey(4));
+      default: return LandingPage(key: ValueKey(0));
     }
   }
 }
 
-class LandingPage extends StatelessWidget {
+class LandingPage extends StatefulWidget {
+  const LandingPage({Key? key}) : super(key: key);
+
+  @override
+  _LandingPageState createState() => _LandingPageState();
+}
+
+class _LandingPageState extends State<LandingPage> with TickerProviderStateMixin {
+  late AnimationController _heroController;
+  late AnimationController _featuresController;
+  late Animation<double> _heroAnimation;
+  late Animation<double> _featuresAnimation;
+  late ScrollController _scrollController;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController = ScrollController();
+    
+    _heroController = AnimationController(
+      duration: Duration(milliseconds: 1200),
+      vsync: this,
+    );
+    
+    _featuresController = AnimationController(
+      duration: Duration(milliseconds: 800),
+      vsync: this,
+    );
+    
+    _heroAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _heroController, curve: Curves.easeOutCubic),
+    );
+    
+    _featuresAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _featuresController, curve: Curves.easeOutCubic),
+    );
+    
+    // Start animations
+    _heroController.forward();
+    Future.delayed(Duration(milliseconds: 400), () {
+      _featuresController.forward();
+    });
+  }
+
+  @override
+  void dispose() {
+    _heroController.dispose();
+    _featuresController.dispose();
+    _scrollController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      child: Column(
-        children: [
+    return Scaffold(
+      body: CustomScrollView(
+        controller: _scrollController,
+        physics: BouncingScrollPhysics(),
+        slivers: [
           // Header
-          Container(
-            padding: EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  children: [
-                    Text('🎯', style: TextStyle(fontSize: 24)),
-                    SizedBox(width: 8),
-                    Text(
-                      'ValoSync',
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFFff4655),
+          SliverToBoxAdapter(
+            child: Container(
+              padding: EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [Color(0xFFff4655), Color(0xFFe63946)],
+                          ),
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Color(0xFFff4655).withOpacity(0.3),
+                              blurRadius: 8,
+                              offset: Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Text('🎯', style: TextStyle(fontSize: 20)),
                       ),
-                    ),
-                  ],
-                ),
-                Row(
-                  children: [
-                    TextButton(
-                      onPressed: () => Navigator.pushNamed(context, '/about'),
-                      child: Text('About', style: TextStyle(color: Colors.white)),
-                    ),
-                    TextButton(
-                      onPressed: () => Navigator.pushNamed(context, '/privacy'),
-                      child: Text('Privacy', style: TextStyle(color: Colors.white)),
-                    ),
-                    ElevatedButton(
-                      onPressed: () => Navigator.pushNamed(context, '/app'),
-                      style: ElevatedButton.styleFrom(backgroundColor: Color(0xFFff4655)),
-                      child: Text('Launch App', style: TextStyle(color: Colors.white)),
-                    ),
-                  ],
-                ),
-              ],
+                      SizedBox(width: 12),
+                      Text(
+                        'ValoSync',
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFFff4655),
+                        ),
+                      ),
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      _buildHeaderButton('About', () => Navigator.pushNamed(context, '/about')),
+                      SizedBox(width: 8),
+                      _buildHeaderButton('Privacy', () => Navigator.pushNamed(context, '/privacy')),
+                      SizedBox(width: 12),
+                      Container(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [Color(0xFFff4655), Color(0xFFe63946)],
+                          ),
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Color(0xFFff4655).withOpacity(0.3),
+                              blurRadius: 8,
+                              offset: Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(12),
+                            onTap: () {
+                              HapticFeedback.lightImpact();
+                              Navigator.pushNamed(context, '/app');
+                            },
+                            child: Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                              child: Text(
+                                'Launch App',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
 
           // Hero Section
-          Container(
-            padding: EdgeInsets.all(40),
-            child: Column(
-              children: [
-                Text(
-                  'Ultimate Valorant Companion',
-                  style: TextStyle(
-                    fontSize: 48,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                SizedBox(height: 16),
-                Text(
-                  'Track your performance, manage your store, and build better teams with the most comprehensive Valorant companion app.',
-                  style: TextStyle(
-                    fontSize: 18,
-                    color: Color(0xFF9ca3af),
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                SizedBox(height: 32),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    ElevatedButton(
-                      onPressed: () => Navigator.pushNamed(context, '/app'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Color(0xFFff4655),
-                        padding: EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+          SliverToBoxAdapter(
+            child: AnimatedBuilder(
+              animation: _heroAnimation,
+              builder: (context, child) {
+                return Transform.translate(
+                  offset: Offset(0, 30 * (1 - _heroAnimation.value)),
+                  child: Opacity(
+                    opacity: _heroAnimation.value,
+                    child: Container(
+                      padding: EdgeInsets.all(40),
+                      child: Column(
+                        children: [
+                          ShaderMask(
+                            shaderCallback: (bounds) => LinearGradient(
+                              colors: [Color(0xFFff4655), Color(0xFF53f9ff)],
+                            ).createShader(bounds),
+                            child: Text(
+                              'Ultimate Valorant Companion',
+                              style: TextStyle(
+                                fontSize: 48,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                          SizedBox(height: 16),
+                          Text(
+                            'Track your performance, manage your store, and build better teams with the most comprehensive Valorant companion app.',
+                            style: TextStyle(
+                              fontSize: 18,
+                              color: Color(0xFF9ca3af),
+                              height: 1.6,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                          SizedBox(height: 32),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              _buildHeroButton(
+                                'Try Demo Now',
+                                true,
+                                () => Navigator.pushNamed(context, '/app'),
+                              ),
+                              SizedBox(width: 16),
+                              _buildHeroButton(
+                                'Learn More',
+                                false,
+                                () => _scrollToFeatures(),
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
-                      child: Text('Try Demo Now', style: TextStyle(fontSize: 16, color: Colors.white)),
                     ),
-                    SizedBox(width: 16),
-                    OutlinedButton(
-                      onPressed: () {},
-                      style: OutlinedButton.styleFrom(
-                        side: BorderSide(color: Color(0xFF53f9ff)),
-                        padding: EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-                      ),
-                      child: Text('Learn More', style: TextStyle(fontSize: 16, color: Color(0xFF53f9ff))),
-                    ),
-                  ],
-                ),
-              ],
+                  ),
+                );
+              },
             ),
           ),
 
           // Features Section
-          Container(
-            padding: EdgeInsets.all(40),
-            child: Column(
-              children: [
-                Text(
-                  'Powerful Features',
-                  style: TextStyle(
-                    fontSize: 36,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFFff4655),
+          SliverToBoxAdapter(
+            child: AnimatedBuilder(
+              animation: _featuresAnimation,
+              builder: (context, child) {
+                return Transform.translate(
+                  offset: Offset(0, 50 * (1 - _featuresAnimation.value)),
+                  child: Opacity(
+                    opacity: _featuresAnimation.value,
+                    child: Container(
+                      padding: EdgeInsets.all(40),
+                      child: Column(
+                        children: [
+                          ShaderMask(
+                            shaderCallback: (bounds) => LinearGradient(
+                              colors: [Color(0xFFff4655), Color(0xFFe63946)],
+                            ).createShader(bounds),
+                            child: Text(
+                              'Powerful Features',
+                              style: TextStyle(
+                                fontSize: 36,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                          SizedBox(height: 40),
+                          GridView.count(
+                            crossAxisCount: 2,
+                            shrinkWrap: true,
+                            physics: NeverScrollableScrollPhysics(),
+                            crossAxisSpacing: 20,
+                            mainAxisSpacing: 20,
+                            childAspectRatio: 1.1,
+                            children: [
+                              _buildFeatureCard(
+                                Icons.trending_up_rounded,
+                                'Performance Analytics',
+                                'Real-time rank tracking with detailed match analysis and improvement recommendations.',
+                                0,
+                              ),
+                              _buildFeatureCard(
+                                Icons.storefront_rounded,
+                                'Smart Store Manager',
+                                'Never miss your favorite skins with intelligent alerts and spending analytics.',
+                                1,
+                              ),
+                              _buildFeatureCard(
+                                Icons.people_rounded,
+                                'Team Building',
+                                'Advanced teammate matching and team formation tools for competitive play.',
+                                2,
+                              ),
+                              _buildFeatureCard(
+                                Icons.psychology_rounded,
+                                'Strategic Tools',
+                                'Pre-match preparation with opponent research and custom practice routines.',
+                                3,
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
-                ),
-                SizedBox(height: 40),
-                GridView.count(
-                  crossAxisCount: 2,
-                  shrinkWrap: true,
-                  physics: NeverScrollableScrollPhysics(),
-                  crossAxisSpacing: 32,
-                  mainAxisSpacing: 32,
-                  childAspectRatio: 1.2,
-                  children: [
-                    FeatureCard(
-                      Icons.trending_up,
-                      'Performance Analytics',
-                      'Real-time rank tracking with detailed match analysis and improvement recommendations.',
-                    ),
-                    FeatureCard(
-                      Icons.store,
-                      'Smart Store Manager',
-                      'Never miss your favorite skins with intelligent alerts and spending analytics.',
-                    ),
-                    FeatureCard(
-                      Icons.group,
-                      'Team Building',
-                      'Advanced teammate matching and team formation tools for competitive play.',
-                    ),
-                    FeatureCard(
-                      Icons.analytics,
-                      'Strategic Tools',
-                      'Pre-match preparation with opponent research and custom practice routines.',
-                    ),
-                  ],
-                ),
-              ],
+                );
+              },
             ),
           ),
 
           // Footer
-          Container(
-            padding: EdgeInsets.all(40),
-            child: Column(
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    TextButton(
-                      onPressed: () => Navigator.pushNamed(context, '/about'),
-                      child: Text('About', style: TextStyle(color: Color(0xFF9ca3af))),
-                    ),
-                    TextButton(
-                      onPressed: () => Navigator.pushNamed(context, '/privacy'),
-                      child: Text('Privacy Policy', style: TextStyle(color: Color(0xFF9ca3af))),
-                    ),
-                    TextButton(
-                      onPressed: () => Navigator.pushNamed(context, '/terms'),
-                      child: Text('Terms of Service', style: TextStyle(color: Color(0xFF9ca3af))),
-                    ),
-                  ],
-                ),
-                SizedBox(height: 16),
-                Text(
-                  '© 2025 ValoSync. Not affiliated with Riot Games, Inc.',
-                  style: TextStyle(color: Color(0xFF666), fontSize: 12),
-                ),
-                SizedBox(height: 8),
-                Text(
-                  'Built with ❤️ for the Valorant community',
-                  style: TextStyle(color: Color(0xFF666), fontSize: 12),
-                ),
-              ],
+          SliverToBoxAdapter(
+            child: Container(
+              padding: EdgeInsets.all(40),
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      _buildFooterLink('About', () => Navigator.pushNamed(context, '/about')),
+                      _buildFooterLink('Privacy Policy', () => Navigator.pushNamed(context, '/privacy')),
+                      _buildFooterLink('Terms of Service', () => Navigator.pushNamed(context, '/terms')),
+                    ],
+                  ),
+                  SizedBox(height: 16),
+                  Text(
+                    '© 2025 ValoSync. Not affiliated with Riot Games, Inc.',
+                    style: TextStyle(color: Color(0xFF666), fontSize: 12),
+                  ),
+                  SizedBox(height: 8),
+                  Text(
+                    'Built with ❤️ for the Valorant community',
+                    style: TextStyle(color: Color(0xFF666), fontSize: 12),
+                  ),
+                ],
+              ),
             ),
           ),
         ],
       ),
     );
   }
-}
 
-class FeatureCard extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final String description;
-
-  FeatureCard(this.icon, this.title, this.description);
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: Color(0xFF1e2328),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Color(0xFF53f9ff), width: 0.5),
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(icon, size: 48, color: Color(0xFF53f9ff)),
-          SizedBox(height: 16),
-          Text(
-            title,
+  Widget _buildHeaderButton(String text, VoidCallback onTap) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(8),
+        onTap: () {
+          HapticFeedback.lightImpact();
+          onTap();
+        },
+        child: Padding(
+          padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          child: Text(
+            text,
             style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
               color: Colors.white,
+              fontWeight: FontWeight.w500,
             ),
-            textAlign: TextAlign.center,
           ),
-          SizedBox(height: 8),
-          Text(
-            description,
-            style: TextStyle(
-              fontSize: 14,
-              color: Color(0xFF9ca3af),
-            ),
-            textAlign: TextAlign.center,
-          ),
-        ],
+        ),
       ),
+    );
+  }
+
+  Widget _buildHeroButton(String text, bool isPrimary, VoidCallback onTap) {
+    return Container(
+      decoration: BoxDecoration(
+        gradient: isPrimary ? LinearGradient(
+          colors: [Color(0xFFff4655), Color(0xFFe63946)],
+        ) : null,
+        border: isPrimary ? null : Border.all(color: Color(0xFF53f9ff), width: 2),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: isPrimary ? [
+          BoxShadow(
+            color: Color(0xFFff4655).withOpacity(0.3),
+            blurRadius: 12,
+            offset: Offset(0, 4),
+          ),
+        ] : null,
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: () {
+            HapticFeedback.mediumImpact();
+            onTap();
+          },
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+            child: Text(
+              text,
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: isPrimary ? Colors.white : Color(0xFF53f9ff),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFeatureCard(IconData icon, String title, String description, int index) {
+    return TweenAnimationBuilder(
+      duration: Duration(milliseconds: 600 + (index * 100)),
+      tween: Tween<double>(begin: 0.0, end: 1.0),
+      builder: (context, double value, child) {
+        return Transform.translate(
+          offset: Offset(0, 30 * (1 - value)),
+          child: Opacity(
+            opacity: value,
+            child: Container(
+              padding: EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Color(0xFF1e2328),
+                    Color(0xFF252a30),
+                  ],
+                ),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: Color(0xFF53f9ff).withOpacity(0.3),
+                  width: 1,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.2),
+                    blurRadius: 10,
+                    offset: Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    padding: EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [Color(0xFF53f9ff), Color(0xFF4cc9f0)],
+                      ),
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Color(0xFF53f9ff).withOpacity(0.3),
+                          blurRadius: 8,
+                          offset: Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Icon(icon, size: 32, color: Colors.white),
+                  ),
+                  SizedBox(height: 16),
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  SizedBox(height: 8),
+                  Text(
+                    description,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Color(0xFF9ca3af),
+                      height: 1.4,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildFooterLink(String text, VoidCallback onTap) {
+    return TextButton(
+      onPressed: () {
+        HapticFeedback.lightImpact();
+        onTap();
+      },
+      child: Text(
+        text,
+        style: TextStyle(color: Color(0xFF9ca3af)),
+      ),
+    );
+  }
+
+  void _scrollToFeatures() {
+    _scrollController.animateTo(
+      600,
+      duration: Duration(milliseconds: 800),
+      curve: Curves.easeInOut,
     );
   }
 }
@@ -304,30 +674,86 @@ class LoginPage extends StatefulWidget {
   _LoginPageState createState() => _LoginPageState();
 }
 
-class _LoginPageState extends State<LoginPage> {
+class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
+  late AnimationController _scaleController;
+  late Animation<double> _scaleAnimation;
+  bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _scaleController = AnimationController(
+      duration: Duration(milliseconds: 600),
+      vsync: this,
+    );
+    _scaleAnimation = Tween<double>(begin: 0.9, end: 1.0).animate(
+      CurvedAnimation(parent: _scaleController, curve: Curves.easeOutBack),
+    );
+    _scaleController.forward();
+  }
+
+  @override
+  void dispose() {
+    _scaleController.dispose();
+    super.dispose();
+  }
+
   void handleRiotLogin() {
+    setState(() => _isLoading = true);
+    
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: Color(0xFF1e2328),
-        title: Text('Riot Games Authentication', style: TextStyle(color: Colors.white)),
-        content: Text(
-          'RSO integration pending Riot Developer approval.\nDemo mode available for testing all features.',
-          style: TextStyle(color: Color(0xFF9ca3af)),
+      barrierDismissible: false,
+      builder: (ctx) => AnimatedContainer(
+        duration: Duration(milliseconds: 300),
+        child: AlertDialog(
+          backgroundColor: Color(0xFF1e2328),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: Row(
+            children: [
+              Container(
+                padding: EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [Color(0xFFff4655), Color(0xFFe63946)],
+                  ),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(Icons.security_rounded, color: Colors.white, size: 20),
+              ),
+              SizedBox(width: 12),
+              Text('Riot Games Authentication', style: TextStyle(color: Colors.white)),
+            ],
+          ),
+          content: Text(
+            'RSO integration pending Riot Developer approval.\nDemo mode available for testing all features.',
+            style: TextStyle(color: Color(0xFF9ca3af), height: 1.5),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                setState(() => _isLoading = false);
+                Navigator.pop(ctx);
+              },
+              child: Text('Cancel', style: TextStyle(color: Color(0xFF9ca3af))),
+            ),
+            Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [Color(0xFFff4655), Color(0xFFe63946)],
+                ),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: TextButton(
+                onPressed: () {
+                  Navigator.pop(ctx);
+                  Navigator.pushNamed(context, '/dashboard');
+                },
+                child: Text('Demo Mode', style: TextStyle(color: Colors.white)),
+              ),
+            ),
+          ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: Text('Cancel', style: TextStyle(color: Color(0xFF9ca3af))),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(ctx);
-              Navigator.pushNamed(context, '/dashboard');
-            },
-            child: Text('Demo Mode', style: TextStyle(color: Color(0xFFff4655))),
-          ),
-        ],
       ),
     );
   }
@@ -341,148 +767,254 @@ class _LoginPageState extends State<LoginPage> {
         iconTheme: IconThemeData(color: Colors.white),
       ),
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: EdgeInsets.symmetric(horizontal: 24),
-          child: Column(
-            children: [
-              SizedBox(height: 40),
-              Text('🎯', style: TextStyle(fontSize: 64)),
-              SizedBox(height: 16),
-              Text(
-                'ValoSync',
-                style: TextStyle(
-                  fontSize: 36,
-                  fontWeight: FontWeight.w700,
-                  color: Color(0xFFff4655),
-                ),
-              ),
-              Text(
-                'Valorant Companion',
-                style: TextStyle(color: Color(0xFF9ca3af)),
-              ),
-              
-              SizedBox(height: 60),
-              
-              Container(
-                width: double.infinity,
-                padding: EdgeInsets.all(28),
-                decoration: BoxDecoration(
-                  color: Color(0xFF1e2328),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Color(0xFF53f9ff), width: 0.5),
-                ),
+        child: AnimatedBuilder(
+          animation: _scaleAnimation,
+          builder: (context, child) {
+            return Transform.scale(
+              scale: _scaleAnimation.value,
+              child: SingleChildScrollView(
+                physics: BouncingScrollPhysics(),
+                padding: EdgeInsets.symmetric(horizontal: 24),
                 child: Column(
                   children: [
+                    SizedBox(height: 40),
+                    Hero(
+                      tag: 'logo',
+                      child: Container(
+                        padding: EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [Color(0xFFff4655), Color(0xFFe63946)],
+                          ),
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Color(0xFFff4655).withOpacity(0.3),
+                              blurRadius: 20,
+                              offset: Offset(0, 8),
+                            ),
+                          ],
+                        ),
+                        child: Text('🎯', style: TextStyle(fontSize: 40)),
+                      ),
+                    ),
+                    SizedBox(height: 24),
+                    ShaderMask(
+                      shaderCallback: (bounds) => LinearGradient(
+                        colors: [Color(0xFFff4655), Color(0xFF53f9ff)],
+                      ).createShader(bounds),
+                      child: Text(
+                        'ValoSync',
+                        style: TextStyle(
+                          fontSize: 36,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
                     Text(
-                      'Sign In',
+                      'Valorant Companion',
                       style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white,
+                        color: Color(0xFF9ca3af),
+                        fontSize: 16,
                       ),
                     ),
-                    SizedBox(height: 8),
-                    Text(
-                      'Connect your Riot account for full features',
-                      style: TextStyle(color: Color(0xFF9ca3af)),
-                    ),
                     
-                    SizedBox(height: 32),
+                    SizedBox(height: 60),
                     
-                    SizedBox(
+                    Container(
                       width: double.infinity,
-                      height: 52,
-                      child: ElevatedButton.icon(
-                        onPressed: handleRiotLogin,
-                        icon: Icon(Icons.security),
-                        label: Text('Continue with Riot'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Color(0xFFff4655),
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(26),
-                          ),
+                      padding: EdgeInsets.all(32),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            Color(0xFF1e2328),
+                            Color(0xFF252a30),
+                          ],
                         ),
+                        borderRadius: BorderRadius.circular(24),
+                        border: Border.all(
+                          color: Color(0xFF53f9ff).withOpacity(0.3),
+                          width: 1,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.3),
+                            blurRadius: 20,
+                            offset: Offset(0, 8),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        children: [
+                          Text(
+                            'Sign In',
+                            style: TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.white,
+                            ),
+                          ),
+                          SizedBox(height: 8),
+                          Text(
+                            'Connect your Riot account for full features',
+                            style: TextStyle(color: Color(0xFF9ca3af)),
+                          ),
+                          
+                          SizedBox(height: 32),
+                          
+                          Container(
+                            width: double.infinity,
+                            height: 52,
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [Color(0xFFff4655), Color(0xFFe63946)],
+                              ),
+                              borderRadius: BorderRadius.circular(16),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Color(0xFFff4655).withOpacity(0.3),
+                                  blurRadius: 8,
+                                  offset: Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: Material(
+                              color: Colors.transparent,
+                              child: InkWell(
+                                borderRadius: BorderRadius.circular(16),
+                                onTap: _isLoading ? null : () {
+                                  HapticFeedback.mediumImpact();
+                                  handleRiotLogin();
+                                },
+                                child: Center(
+                                  child: _isLoading 
+                                    ? SizedBox(
+                                        width: 20,
+                                        height: 20,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          valueColor: AlwaysStoppedAnimation(Colors.white),
+                                        ),
+                                      )
+                                    : Row(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          Icon(Icons.security_rounded, color: Colors.white),
+                                          SizedBox(width: 8),
+                                          Text(
+                                            'Continue with Riot',
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                ),
+                              ),
+                            ),
+                          ),
+                          
+                          SizedBox(height: 24),
+                          
+                          Row(
+                            children: [
+                              Expanded(child: Divider(color: Color(0xFF444))),
+                              Padding(
+                                padding: EdgeInsets.symmetric(horizontal: 16),
+                                child: Text('OR', style: TextStyle(color: Color(0xFF9ca3af))),
+                              ),
+                              Expanded(child: Divider(color: Color(0xFF444))),
+                            ],
+                          ),
+                          
+                          SizedBox(height: 24),
+                          
+                          Container(
+                            width: double.infinity,
+                            height: 48,
+                            decoration: BoxDecoration(
+                              border: Border.all(color: Color(0xFF53f9ff), width: 2),
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: Material(
+                              color: Colors.transparent,
+                              child: InkWell(
+                                borderRadius: BorderRadius.circular(16),
+                                onTap: () {
+                                  HapticFeedback.lightImpact();
+                                  Navigator.pushNamed(context, '/dashboard');
+                                },
+                                child: Center(
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(Icons.play_arrow_rounded, color: Color(0xFF53f9ff)),
+                                      SizedBox(width: 8),
+                                      Text(
+                                        'Try Demo',
+                                        style: TextStyle(
+                                          color: Color(0xFF53f9ff),
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                     
-                    SizedBox(height: 24),
+                    SizedBox(height: 40),
                     
-                    Row(
-                      children: [
-                        Expanded(child: Divider(color: Color(0xFF444))),
-                        Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 16),
-                          child: Text('OR', style: TextStyle(color: Color(0xFF9ca3af))),
-                        ),
-                        Expanded(child: Divider(color: Color(0xFF444))),
-                      ],
-                    ),
-                    
-                    SizedBox(height: 24),
-                    
-                    SizedBox(
-                      width: double.infinity,
-                      height: 48,
-                      child: OutlinedButton.icon(
-                        onPressed: () {
-                          Navigator.pushNamed(context, '/dashboard');
-                        },
-                        icon: Icon(Icons.play_arrow),
-                        label: Text('Try Demo'),
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: Color(0xFF53f9ff),
-                          side: BorderSide(color: Color(0xFF53f9ff)),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(24),
+                    Container(
+                      padding: EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: Color(0xFFff4655).withOpacity(0.1),
+                        border: Border.all(color: Color(0xFFff4655).withOpacity(0.3), width: 1),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Column(
+                        children: [
+                          Row(
+                            children: [
+                              Icon(Icons.security_rounded, color: Color(0xFFff4655), size: 20),
+                              SizedBox(width: 8),
+                              Text(
+                                'Privacy & Data Protection',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFFff4655),
+                                ),
+                              ),
+                            ],
                           ),
-                        ),
+                          SizedBox(height: 8),
+                          Text(
+                            'ValoSync requires explicit user consent for data access via RSO. Your privacy is our priority.',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 12,
+                              height: 1.4,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
                       ),
                     ),
+                    
+                    SizedBox(height: 40),
                   ],
                 ),
               ),
-              
-              SizedBox(height: 40),
-              
-              Container(
-                padding: EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Color(0xFFff4655).withOpacity(0.1),
-                  border: Border.all(color: Color(0xFFff4655), width: 0.5),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Column(
-                  children: [
-                    Row(
-                      children: [
-                        Icon(Icons.security, color: Color(0xFFff4655), size: 20),
-                        SizedBox(width: 8),
-                        Text(
-                          'Privacy & Data Protection',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFFff4655),
-                          ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 8),
-                    Text(
-                      'ValoSync requires explicit user consent for data access via RSO. Your privacy is our priority.',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 12,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
-                ),
-              ),
-              
-              SizedBox(height: 40),
-            ],
-          ),
+            );
+          },
         ),
       ),
     );
@@ -494,142 +1026,1134 @@ class Dashboard extends StatefulWidget {
   _DashboardState createState() => _DashboardState();
 }
 
-class _DashboardState extends State<Dashboard> {
+class _DashboardState extends State<Dashboard> with TickerProviderStateMixin {
   int currentTab = 0;
+  late AnimationController _slideController;
+  
+  @override
+  void initState() {
+    super.initState();
+    _slideController = AnimationController(
+      duration: Duration(milliseconds: 300),
+      vsync: this,
+    );
+    _slideController.forward();
+  }
+
+  @override
+  void dispose() {
+    _slideController.dispose();
+    super.dispose();
+  }
   
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Color(0xFF1e2328),
+        elevation: 0,
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.centerLeft,
+              end: Alignment.centerRight,
+              colors: [
+                Color(0xFF1e2328),
+                Color(0xFF252a30),
+              ],
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.2),
+                blurRadius: 8,
+                offset: Offset(0, 2),
+              ),
+            ],
+          ),
+        ),
         title: Row(
           children: [
-            Text('🎯', style: TextStyle(fontSize: 20)),
-            SizedBox(width: 8),
+            Container(
+              padding: EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [Color(0xFFff4655), Color(0xFFe63946)],
+                ),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text('🎯', style: TextStyle(fontSize: 16)),
+            ),
+            SizedBox(width: 12),
             Text(
               'ValoSync',
               style: TextStyle(
                 color: Color(0xFFff4655),
                 fontWeight: FontWeight.w600,
+                fontSize: 20,
               ),
             ),
           ],
         ),
         actions: [
-          IconButton(
-            onPressed: () {},
-            icon: Icon(Icons.notifications, color: Color(0xFF53f9ff)),
+          Container(
+            margin: EdgeInsets.only(right: 8),
+            decoration: BoxDecoration(
+              color: Color(0xFF53f9ff).withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: IconButton(
+              onPressed: () => HapticFeedback.lightImpact(),
+              icon: Icon(Icons.notifications_rounded, color: Color(0xFF53f9ff)),
+            ),
           ),
-          IconButton(
-            onPressed: () {},
-            icon: Icon(Icons.settings, color: Colors.white),
+          Container(
+            margin: EdgeInsets.only(right: 16),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: IconButton(
+              onPressed: () => HapticFeedback.lightImpact(),
+              icon: Icon(Icons.settings_rounded, color: Colors.white),
+            ),
           ),
         ],
       ),
-      body: getTabContent(),
-      bottomNavigationBar: BottomNavigationBar(
-        backgroundColor: Color(0xFF1e2328),
-        selectedItemColor: Color(0xFFff4655),
-        unselectedItemColor: Color(0xFF666),
-        type: BottomNavigationBarType.fixed,
-        currentIndex: currentTab,
-        onTap: (i) => setState(() => currentTab = i),
-        items: [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.bar_chart), label: 'Stats'),
-          BottomNavigationBarItem(icon: Icon(Icons.store), label: 'Store'),
-          BottomNavigationBarItem(icon: Icon(Icons.people), label: 'Social'),
-          BottomNavigationBarItem(icon: Icon(Icons.settings), label: 'Settings'),
-        ],
+      body: AnimatedSwitcher(
+        duration: Duration(milliseconds: 300),
+        transitionBuilder: (Widget child, Animation<double> animation) {
+          return SlideTransition(
+            position: Tween<Offset>(
+              begin: Offset(0.1, 0),
+              end: Offset.zero,
+            ).animate(CurvedAnimation(
+              parent: animation,
+              curve: Curves.easeOutCubic,
+            )),
+            child: FadeTransition(opacity: animation, child: child),
+          );
+        },
+        child: getTabContent(),
+      ),
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Color(0xFF1e2328).withOpacity(0.8),
+              Color(0xFF1e2328),
+            ],
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.3),
+              blurRadius: 20,
+              offset: Offset(0, -5),
+            ),
+          ],
+        ),
+        child: BottomNavigationBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          selectedItemColor: Color(0xFFff4655),
+          unselectedItemColor: Color(0xFF666),
+          type: BottomNavigationBarType.fixed,
+          currentIndex: currentTab,
+          onTap: (i) {
+            HapticFeedback.lightImpact();
+            setState(() => currentTab = i);
+          },
+          selectedLabelStyle: TextStyle(fontWeight: FontWeight.w600),
+          items: [
+            BottomNavigationBarItem(
+              icon: AnimatedContainer(
+                duration: Duration(milliseconds: 200),
+                padding: EdgeInsets.all(currentTab == 0 ? 8 : 4),
+                decoration: BoxDecoration(
+                  color: currentTab == 0 ? Color(0xFFff4655).withOpacity(0.1) : Colors.transparent,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(Icons.home_rounded),
+              ),
+              label: 'Home',
+            ),
+            BottomNavigationBarItem(
+              icon: AnimatedContainer(
+                duration: Duration(milliseconds: 200),
+                padding: EdgeInsets.all(currentTab == 1 ? 8 : 4),
+                decoration: BoxDecoration(
+                  color: currentTab == 1 ? Color(0xFFff4655).withOpacity(0.1) : Colors.transparent,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(Icons.analytics_rounded),
+              ),
+              label: 'Stats',
+            ),
+            BottomNavigationBarItem(
+              icon: AnimatedContainer(
+                duration: Duration(milliseconds: 200),
+                padding: EdgeInsets.all(currentTab == 2 ? 8 : 4),
+                decoration: BoxDecoration(
+                  color: currentTab == 2 ? Color(0xFFff4655).withOpacity(0.1) : Colors.transparent,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(Icons.storefront_rounded),
+              ),
+              label: 'Store',
+            ),
+            BottomNavigationBarItem(
+              icon: AnimatedContainer(
+                duration: Duration(milliseconds: 200),
+                padding: EdgeInsets.all(currentTab == 3 ? 8 : 4),
+                decoration: BoxDecoration(
+                  color: currentTab == 3 ? Color(0xFFff4655).withOpacity(0.1) : Colors.transparent,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(Icons.people_rounded),
+              ),
+              label: 'Social',
+            ),
+            BottomNavigationBarItem(
+              icon: AnimatedContainer(
+                duration: Duration(milliseconds: 200),
+                padding: EdgeInsets.all(currentTab == 4 ? 8 : 4),
+                decoration: BoxDecoration(
+                  color: currentTab == 4 ? Color(0xFFff4655).withOpacity(0.1) : Colors.transparent,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(Icons.settings_rounded),
+              ),
+              label: 'Settings',
+            ),
+          ],
+        ),
       ),
     );
   }
   
   Widget getTabContent() {
     switch (currentTab) {
-      case 0: return HomeTab();
-      case 1: return StatsTab();
-      case 2: return StoreTab();
-      case 3: return SocialTab();
-      case 4: return SettingsTab();
-      default: return HomeTab();
+      case 0: return HomeTab(key: ValueKey(0));
+      case 1: return StatsTab(key: ValueKey(1));
+      case 2: return StoreTab(key: ValueKey(2));
+      case 3: return SocialTab(key: ValueKey(3));
+      case 4: return SettingsTab(key: ValueKey(4));
+      default: return HomeTab(key: ValueKey(0));
     }
   }
 }
 
-class HomeTab extends StatelessWidget {
+class HomeTab extends StatefulWidget {
+  const HomeTab({Key? key}) : super(key: key);
+
+  @override
+  _HomeTabState createState() => _HomeTabState();
+}
+
+class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
+  late AnimationController _staggerController;
+
+  @override
+  void initState() {
+    super.initState();
+    _staggerController = AnimationController(
+      duration: Duration(milliseconds: 1200),
+      vsync: this,
+    );
+    _staggerController.forward();
+  }
+
+  @override
+  void dispose() {
+    _staggerController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return RefreshIndicator(
+      onRefresh: () async {
+        HapticFeedback.lightImpact();
+        await Future.delayed(Duration(milliseconds: 800));
+      },
+      backgroundColor: Color(0xFF1e2328),
+      color: Color(0xFFff4655),
+      child: SingleChildScrollView(
+        physics: BouncingScrollPhysics(),
+        padding: EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Welcome Section
+            _buildStaggeredItem(
+              0,
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Welcome back!',
+                              style: TextStyle(
+                                fontSize: 28,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.white,
+                              ),
+                            ),
+                            Text(
+                              'Your Valorant overview',
+                              style: TextStyle(
+                                color: Color(0xFF9ca3af),
+                                fontSize: 16,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Container(
+                        padding: EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [Color(0xFF53f9ff), Color(0xFF4cc9f0)],
+                          ),
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Color(0xFF53f9ff).withOpacity(0.3),
+                              blurRadius: 8,
+                              offset: Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Icon(Icons.person_rounded, color: Colors.white, size: 24),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            
+            SizedBox(height: 32),
+            
+            // Stats Grid
+            GridView.count(
+              crossAxisCount: 2,
+              shrinkWrap: true,
+              physics: NeverScrollableScrollPhysics(),
+              crossAxisSpacing: 16,
+              mainAxisSpacing: 16,
+              childAspectRatio: 1.2,
+              children: [
+                _buildStaggeredItem(1, ModernStatCard('Current Rank', 'Diamond 2', '+67 RR', Colors.amber)),
+                _buildStaggeredItem(2, ModernStatCard('Combat Score', '245', '+12', Color(0xFF53f9ff))),
+                _buildStaggeredItem(3, ModernStatCard('Win Rate', '67%', '+5%', Colors.green)),
+                _buildStaggeredItem(4, ModernStatCard('Headshot %', '24%', '±0%', Color(0xFF888))),
+              ],
+            ),
+            
+            SizedBox(height: 32),
+            
+            // Recent Matches
+            _buildStaggeredItem(
+              5,
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Recent Matches',
+                    style: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFFff4655),
+                    ),
+                  ),
+                  Container(
+                    padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: Color(0xFF53f9ff).withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Color(0xFF53f9ff).withOpacity(0.3)),
+                    ),
+                    child: Text(
+                      'View All',
+                      style: TextStyle(
+                        color: Color(0xFF53f9ff),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            
+            SizedBox(height: 16),
+            
+            _buildStaggeredItem(6, ModernMatchCard('Sunset', '13-9', true, '24/15/8', 'Jett')),
+            _buildStaggeredItem(7, ModernMatchCard('Bind', '11-13', false, '18/17/5', 'Sage')),
+            _buildStaggeredItem(8, ModernMatchCard('Haven', '13-7', true, '31/12/6', 'Reyna')),
+            
+            SizedBox(height: 24),
+            
+            _buildStaggeredItem(
+              9,
+              Container(
+                width: double.infinity,
+                padding: EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      Color(0xFF53f9ff).withOpacity(0.1),
+                      Color(0xFF4cc9f0).withOpacity(0.05),
+                    ],
+                  ),
+                  border: Border.all(color: Color(0xFF53f9ff).withOpacity(0.3), width: 1),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Color(0xFF53f9ff).withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Icon(Icons.info_outline_rounded, color: Color(0xFF53f9ff), size: 20),
+                    ),
+                    SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Demo Mode',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 14,
+                            ),
+                          ),
+                          Text(
+                            'Real integration pending Riot API approval',
+                            style: TextStyle(
+                              color: Color(0xFF9ca3af),
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStaggeredItem(int index, Widget child) {
+    return TweenAnimationBuilder(
+      duration: Duration(milliseconds: 600 + (index * 100)),
+      tween: Tween<double>(begin: 0.0, end: 1.0),
+      curve: Curves.easeOutCubic,
+      builder: (context, double value, _) {
+        return Transform.translate(
+          offset: Offset(0, 30 * (1 - value)),
+          child: Opacity(
+            opacity: value,
+            child: child,
+          ),
+        );
+      },
+    );
+  }
+}
+
+class ModernStatCard extends StatelessWidget {
+  final String title, value, change;
+  final Color color;
+  
+  const ModernStatCard(this.title, this.value, this.change, this.color);
+  
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Color(0xFF1e2328),
+            Color(0xFF252a30),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Color(0xFF333).withOpacity(0.5), width: 1),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.2),
+            blurRadius: 8,
+            offset: Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                title,
+                style: TextStyle(
+                  color: Color(0xFF9ca3af),
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              Container(
+                padding: EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  color: color.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Container(
+                  width: 6,
+                  height: 6,
+                  decoration: BoxDecoration(
+                    color: color,
+                    borderRadius: BorderRadius.circular(3),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          Text(
+            value,
+            style: TextStyle(
+              color: color,
+              fontSize: 24,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          Text(
+            change,
+            style: TextStyle(
+              color: Color(0xFF666),
+              fontSize: 11,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class ModernMatchCard extends StatelessWidget {
+  final String map, score, kda, agent;
+  final bool won;
+  
+  const ModernMatchCard(this.map, this.score, this.won, this.kda, this.agent);
+  
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: EdgeInsets.only(bottom: 12),
+      padding: EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Color(0xFF1e2328),
+            Color(0xFF252a30),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: won 
+            ? Colors.green.withOpacity(0.3) 
+            : Colors.red.withOpacity(0.3),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: (won ? Colors.green : Colors.red).withOpacity(0.1),
+            blurRadius: 8,
+            offset: Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: won 
+                  ? [Colors.green, Colors.green.shade600]
+                  : [Colors.red, Colors.red.shade600],
+              ),
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: (won ? Colors.green : Colors.red).withOpacity(0.3),
+                  blurRadius: 8,
+                  offset: Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Center(
+              child: Text(
+                won ? 'W' : 'L',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 16,
+                ),
+              ),
+            ),
+          ),
+          SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  map,
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 16,
+                  ),
+                ),
+                SizedBox(height: 4),
+                Text(
+                  score,
+                  style: TextStyle(
+                    color: Color(0xFF9ca3af),
+                    fontSize: 13,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                kda,
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 15,
+                ),
+              ),
+              SizedBox(height: 4),
+              Container(
+                padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                decoration: BoxDecoration(
+                  color: Color(0xFF53f9ff).withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  agent,
+                  style: TextStyle(
+                    color: Color(0xFF53f9ff),
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// Continue with other tabs (StatsTab, StoreTab, SocialTab, SettingsTab, etc.)
+// For brevity, I'll show the key improvements for StatsTab and StoreTab
+
+class StatsTab extends StatefulWidget {
+  const StatsTab({Key? key}) : super(key: key);
+
+  @override
+  _StatsTabState createState() => _StatsTabState();
+}
+
+class _StatsTabState extends State<StatsTab> with TickerProviderStateMixin {
+  late AnimationController _pulseController;
+
+  @override
+  void initState() {
+    super.initState();
+    _pulseController = AnimationController(
+      duration: Duration(milliseconds: 2000),
+      vsync: this,
+    );
+    _pulseController.repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    _pulseController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
+      physics: BouncingScrollPhysics(),
+      padding: EdgeInsets.all(16),
+      child: Column(
+        children: [
+          SizedBox(height: 20),
+          ShaderMask(
+            shaderCallback: (bounds) => LinearGradient(
+              colors: [Color(0xFFff4655), Color(0xFF53f9ff)],
+            ).createShader(bounds),
+            child: Text(
+              'Performance Analytics',
+              style: TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+          ),
+          SizedBox(height: 40),
+          
+          AnimatedBuilder(
+            animation: _pulseController,
+            builder: (context, child) {
+              return Transform.scale(
+                scale: 1.0 + (_pulseController.value * 0.02),
+                child: Container(
+                  padding: EdgeInsets.all(32),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        Color(0xFF1e2328),
+                        Color(0xFF252a30),
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(24),
+                    border: Border.all(
+                      color: Color(0xFF53f9ff).withOpacity(0.3),
+                      width: 1,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Color(0xFF53f9ff).withOpacity(0.1),
+                        blurRadius: 20,
+                        offset: Offset(0, 8),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    children: [
+                      Container(
+                        padding: EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [Color(0xFF53f9ff), Color(0xFF4cc9f0)],
+                          ),
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Color(0xFF53f9ff).withOpacity(0.3),
+                              blurRadius: 12,
+                              offset: Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: Icon(Icons.analytics_rounded, size: 48, color: Colors.white),
+                      ),
+                      SizedBox(height: 24),
+                      Text(
+                        'Detailed Statistics Coming Soon',
+                        style: TextStyle(
+                          fontSize: 22,
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      SizedBox(height: 16),
+                      Text(
+                        'Advanced analytics including:\n• Agent performance breakdowns\n• Map-specific statistics\n• Aim accuracy trends\n• Rank progression predictions',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: Color(0xFF9ca3af),
+                          height: 1.6,
+                          fontSize: 16,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class StoreTab extends StatefulWidget {
+  const StoreTab({Key? key}) : super(key: key);
+
+  @override
+  _StoreTabState createState() => _StoreTabState();
+}
+
+class _StoreTabState extends State<StoreTab> with TickerProviderStateMixin {
+  late AnimationController _refreshController;
+
+  @override
+  void initState() {
+    super.initState();
+    _refreshController = AnimationController(
+      duration: Duration(milliseconds: 1000),
+      vsync: this,
+    );
+  }
+
+  @override
+  void dispose() {
+    _refreshController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
       padding: EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Welcome back!',
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.w600,
-              color: Colors.white,
-            ),
-          ),
-          Text(
-            'Your Valorant overview',
-            style: TextStyle(color: Color(0xFF9ca3af)),
-          ),
-          
-          SizedBox(height: 24),
-          
-          GridView.count(
-            crossAxisCount: 2,
-            shrinkWrap: true,
-            physics: NeverScrollableScrollPhysics(),
-            crossAxisSpacing: 12,
-            mainAxisSpacing: 12,
-            childAspectRatio: 1.3,
+          SizedBox(height: 20),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              StatCard('Current Rank', 'Diamond 2', '+67 RR', Colors.amber),
-              StatCard('Combat Score', '245', '+12', Color(0xFF53f9ff)),
-              StatCard('Win Rate', '67%', '+5%', Colors.green),
-              StatCard('Headshot %', '24%', '±0%', Color(0xFF888)),
+              Text(
+                'Daily Store',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFFff4655),
+                ),
+              ),
+              Container(
+                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [Color(0xFF53f9ff), Color(0xFF4cc9f0)],
+                  ),
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Color(0xFF53f9ff).withOpacity(0.3),
+                      blurRadius: 8,
+                      offset: Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.refresh_rounded, color: Colors.white, size: 16),
+                    SizedBox(width: 6),
+                    Text(
+                      'Updates in 14h 23m',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ],
           ),
-          
-          SizedBox(height: 32),
-          
-          Text(
-            'Recent Matches',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-              color: Color(0xFFff4655),
+          SizedBox(height: 24),
+          Expanded(
+            child: GridView.count(
+              crossAxisCount: 2,
+              crossAxisSpacing: 16,
+              mainAxisSpacing: 16,
+              physics: BouncingScrollPhysics(),
+              children: [
+                ModernStoreItem('Phantom', 'Ion', '1775 VP', true),
+                ModernStoreItem('Vandal', 'Prime', '1775 VP', false),
+                ModernStoreItem('Operator', 'Dragon', '2175 VP', false),
+                ModernStoreItem('Sheriff', 'Reaver', '1775 VP', true),
+              ],
             ),
           ),
-          
+        ],
+      ),
+    );
+  }
+}
+
+class ModernStoreItem extends StatelessWidget {
+  final String weapon, skin, price;
+  final bool isWishlisted;
+  
+  const ModernStoreItem(this.weapon, this.skin, this.price, this.isWishlisted);
+  
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Color(0xFF1e2328),
+            Color(0xFF252a30),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: isWishlisted ? Color(0xFFff4655) : Color(0xFF333).withOpacity(0.5), 
+          width: isWishlisted ? 2 : 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: isWishlisted 
+              ? Color(0xFFff4655).withOpacity(0.2)
+              : Colors.black.withOpacity(0.1),
+            blurRadius: 12,
+            offset: Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Stack(
+            children: [
+              Container(
+                width: 64,
+                height: 40,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      Color(0xFF53f9ff).withOpacity(0.2),
+                      Color(0xFF4cc9f0).withOpacity(0.1),
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: Color(0xFF53f9ff).withOpacity(0.3),
+                    width: 1,
+                  ),
+                ),
+                child: Icon(Icons.sports_esports_rounded, color: Color(0xFF53f9ff), size: 24),
+              ),
+              if (isWishlisted)
+                Positioned(
+                  top: -4,
+                  right: -4,
+                  child: Container(
+                    padding: EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [Color(0xFFff4655), Color(0xFFe63946)],
+                      ),
+                      borderRadius: BorderRadius.circular(8),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Color(0xFFff4655).withOpacity(0.3),
+                          blurRadius: 4,
+                          offset: Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Icon(Icons.favorite_rounded, color: Colors.white, size: 12),
+                  ),
+                ),
+            ],
+          ),
           SizedBox(height: 16),
-          
-          MatchCard('Sunset', '13-9', true, '24/15/8', 'Jett'),
-          MatchCard('Bind', '11-13', false, '18/17/5', 'Sage'),
-          MatchCard('Haven', '13-7', true, '31/12/6', 'Reyna'),
-          
-          SizedBox(height: 24),
+          Text(
+            weapon,
+            style: TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.w600,
+              fontSize: 16,
+            ),
+          ),
+          Text(
+            skin,
+            style: TextStyle(
+              color: Color(0xFF9ca3af),
+              fontSize: 12,
+            ),
+          ),
+          SizedBox(height: 12),
+          Container(
+            padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Color(0xFFff4655), Color(0xFFe63946)],
+              ),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Text(
+              price,
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
+                fontSize: 13,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class SocialTab extends StatelessWidget {
+  const SocialTab({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      physics: BouncingScrollPhysics(),
+      padding: EdgeInsets.all(16),
+      child: Column(
+        children: [
+          SizedBox(height: 20),
+          ShaderMask(
+            shaderCallback: (bounds) => LinearGradient(
+              colors: [Color(0xFFff4655), Color(0xFF53f9ff)],
+            ).createShader(bounds),
+            child: Text(
+              'Social Hub',
+              style: TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+          ),
+          SizedBox(height: 40),
           
           Container(
-            width: double.infinity,
-            padding: EdgeInsets.all(16),
+            padding: EdgeInsets.all(32),
             decoration: BoxDecoration(
-              color: Color(0xFF53f9ff).withOpacity(0.1),
-              border: Border.all(color: Color(0xFF53f9ff), width: 0.5),
-              borderRadius: BorderRadius.circular(8),
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Color(0xFF1e2328),
+                  Color(0xFF252a30),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(
+                color: Color(0xFF53f9ff).withOpacity(0.3),
+                width: 1,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.2),
+                  blurRadius: 20,
+                  offset: Offset(0, 8),
+                ),
+              ],
             ),
-            child: Row(
+            child: Column(
               children: [
-                Icon(Icons.info_outline, color: Color(0xFF53f9ff), size: 20),
-                SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    'Demo data - Real integration pending Riot API approvala',
-                    style: TextStyle(color: Colors.white, fontSize: 12),
+                Container(
+                  padding: EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [Color(0xFF53f9ff), Color(0xFF4cc9f0)],
+                    ),
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Color(0xFF53f9ff).withOpacity(0.3),
+                        blurRadius: 12,
+                        offset: Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Icon(Icons.people_rounded, size: 48, color: Colors.white),
+                ),
+                SizedBox(height: 24),
+                Text(
+                  'Team Building Features',
+                  style: TextStyle(
+                    fontSize: 22,
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                SizedBox(height: 16),
+                Text(
+                  'Coming soon:\n• Find compatible teammates\n• Team formation tools\n• Match result sharing\n• Community leaderboards',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Color(0xFF9ca3af),
+                    height: 1.6,
+                    fontSize: 16,
+                  ),
+                ),
+                SizedBox(height: 24),
+                Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [Color(0xFFff4655), Color(0xFFe63946)],
+                    ),
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Color(0xFFff4655).withOpacity(0.3),
+                        blurRadius: 8,
+                        offset: Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(16),
+                      onTap: () => HapticFeedback.lightImpact(),
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                        child: Text(
+                          'Join Beta',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
                 ),
               ],
@@ -641,302 +2165,9 @@ class HomeTab extends StatelessWidget {
   }
 }
 
-class StatCard extends StatelessWidget {
-  final String title, value, change;
-  final Color color;
-  
-  StatCard(this.title, this.value, this.change, this.color);
-  
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Color(0xFF1e2328),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Color(0xFF333), width: 0.5),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(title, style: TextStyle(color: Color(0xFF9ca3af), fontSize: 12)),
-          Text(
-            value,
-            style: TextStyle(
-              color: color,
-              fontSize: 20,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          Text(change, style: TextStyle(color: Color(0xFF666), fontSize: 10)),
-        ],
-      ),
-    );
-  }
-}
-
-class MatchCard extends StatelessWidget {
-  final String map, score, kda, agent;
-  final bool won;
-  
-  MatchCard(this.map, this.score, this.won, this.kda, this.agent);
-  
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: EdgeInsets.only(bottom: 8),
-      padding: EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Color(0xFF1e2328),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: won ? Colors.green.withOpacity(0.3) : Colors.red.withOpacity(0.3),
-        ),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 32,
-            height: 32,
-            decoration: BoxDecoration(
-              color: won ? Colors.green : Colors.red,
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Center(
-              child: Text(
-                won ? 'W' : 'L',
-                style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
-              ),
-            ),
-          ),
-          SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(map, style: TextStyle(color: Colors.white, fontWeight: FontWeight.w500)),
-                Text(score, style: TextStyle(color: Color(0xFF9ca3af), fontSize: 12)),
-              ],
-            ),
-          ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(kda, style: TextStyle(color: Colors.white)),
-              Text(agent, style: TextStyle(color: Color(0xFF53f9ff), fontSize: 12)),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class StatsTab extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: EdgeInsets.all(16),
-      child: Column(
-        children: [
-          Text(
-            'Performance Analytics',
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFFff4655),
-            ),
-          ),
-          SizedBox(height: 24),
-          
-          Container(
-            padding: EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: Color(0xFF1e2328),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Color(0xFF53f9ff), width: 0.5),
-            ),
-            child: Column(
-              children: [
-                Icon(Icons.bar_chart, size: 64, color: Color(0xFF53f9ff)),
-                SizedBox(height: 16),
-                Text(
-                  'Detailed Statistics Coming Soon',
-                  style: TextStyle(fontSize: 20, color: Colors.white, fontWeight: FontWeight.bold),
-                ),
-                SizedBox(height: 8),
-                Text(
-                  'Advanced analytics including:\n• Agent performance breakdowns\n• Map-specific statistics\n• Aim accuracy trends\n• Rank progression predictions',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(color: Color(0xFF9ca3af)),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class StoreTab extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Daily Store',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFFff4655),
-                ),
-              ),
-              Container(
-                padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: Color(0xFF53f9ff).withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Text(
-                  'Updates in 14h 23m',
-                  style: TextStyle(color: Color(0xFF53f9ff), fontSize: 12),
-                ),
-              ),
-            ],
-          ),
-          SizedBox(height: 16),
-          Expanded(
-            child: GridView.count(
-              crossAxisCount: 2,
-              crossAxisSpacing: 12,
-              mainAxisSpacing: 12,
-              children: [
-                StoreItem('Phantom', 'Ion', '1775 VP', true),
-                StoreItem('Vandal', 'Prime', '1775 VP', false),
-                StoreItem('Operator', 'Dragon', '2175 VP', false),
-                StoreItem('Sheriff', 'Reaver', '1775 VP', true),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class StoreItem extends StatelessWidget {
-  final String weapon, skin, price;
-  final bool isWishlisted;
-  
-  StoreItem(this.weapon, this.skin, this.price, this.isWishlisted);
-  
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Color(0xFF1e2328),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: isWishlisted ? Color(0xFFff4655) : Color(0xFF333), 
-          width: isWishlisted ? 1 : 0.5
-        ),
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Stack(
-            children: [
-              Container(
-                width: 48,
-                height: 32,
-                decoration: BoxDecoration(
-                  color: Color(0xFF53f9ff).withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: Icon(Icons.sports_esports, color: Color(0xFF53f9ff), size: 20),
-              ),
-              if (isWishlisted)
-                Positioned(
-                  top: -2,
-                  right: -2,
-                  child: Icon(Icons.favorite, color: Color(0xFFff4655), size: 16),
-                ),
-            ],
-          ),
-          SizedBox(height: 12),
-          Text(weapon, style: TextStyle(color: Colors.white, fontWeight: FontWeight.w500)),
-          Text(skin, style: TextStyle(color: Color(0xFF9ca3af), fontSize: 12)),
-          SizedBox(height: 8),
-          Text(price, style: TextStyle(color: Color(0xFFff4655), fontWeight: FontWeight.w500)),
-        ],
-      ),
-    );
-  }
-}
-
-class SocialTab extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: EdgeInsets.all(16),
-      child: Column(
-        children: [
-          Text(
-            'Social Hub',
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFFff4655),
-            ),
-          ),
-          SizedBox(height: 24),
-          
-          Container(
-            padding: EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: Color(0xFF1e2328),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Color(0xFF53f9ff), width: 0.5),
-            ),
-            child: Column(
-              children: [
-                Icon(Icons.people, size: 64, color: Color(0xFF53f9ff)),
-                SizedBox(height: 16),
-                Text(
-                  'Team Building Features',
-                  style: TextStyle(fontSize: 20, color: Colors.white, fontWeight: FontWeight.bold),
-                ),
-                SizedBox(height: 8),
-                Text(
-                  'Coming soon:\n• Find compatible teammates\n• Team formation tools\n• Match result sharing\n• Community leaderboards',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(color: Color(0xFF9ca3af)),
-                ),
-                SizedBox(height: 16),
-                ElevatedButton(
-                  onPressed: () {},
-                  style: ElevatedButton.styleFrom(backgroundColor: Color(0xFFff4655)),
-                  child: Text('Join Beta', style: TextStyle(color: Colors.white)),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 class SettingsTab extends StatefulWidget {
+  const SettingsTab({Key? key}) : super(key: key);
+
   @override
   _SettingsTabState createState() => _SettingsTabState();
 }
@@ -949,62 +2180,140 @@ class _SettingsTabState extends State<SettingsTab> {
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
+      physics: BouncingScrollPhysics(),
       padding: EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Settings',
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFFff4655),
+          SizedBox(height: 20),
+          ShaderMask(
+            shaderCallback: (bounds) => LinearGradient(
+              colors: [Color(0xFFff4655), Color(0xFF53f9ff)],
+            ).createShader(bounds),
+            child: Text(
+              'Settings',
+              style: TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
             ),
           ),
-          SizedBox(height: 24),
+          SizedBox(height: 32),
           
-          _buildSettingsSection('Account', [
-            _buildSettingsTile(Icons.person, 'Profile', 'Manage your profile information', () {}),
-            _buildSettingsTile(Icons.security, 'Privacy', 'Data and privacy settings', () {
-              Navigator.pushNamed(context, '/privacy');
-            }),
+          _buildModernSettingsSection('Account', [
+            _buildModernSettingsTile(
+              Icons.person_rounded,
+              'Profile',
+              'Manage your profile information',
+              () => HapticFeedback.lightImpact(),
+            ),
+            _buildModernSettingsTile(
+              Icons.security_rounded,
+              'Privacy',
+              'Data and privacy settings',
+              () {
+                HapticFeedback.lightImpact();
+                Navigator.pushNamed(context, '/privacy');
+              },
+            ),
           ]),
           
-          _buildSettingsSection('Preferences', [
-            _buildSwitchTile(Icons.dark_mode, 'Dark Mode', 'Use dark theme', darkMode, (value) {
-              setState(() => darkMode = value);
-            }),
-            _buildSwitchTile(Icons.notifications, 'Notifications', 'Push notifications', notifications, (value) {
-              setState(() => notifications = value);
-            }),
-            _buildSwitchTile(Icons.analytics, 'Analytics', 'Help improve ValoSync', analytics, (value) {
-              setState(() => analytics = value);
-            }),
+          _buildModernSettingsSection('Preferences', [
+            _buildModernSwitchTile(
+              Icons.dark_mode_rounded,
+              'Dark Mode',
+              'Use dark theme',
+              darkMode,
+              (value) {
+                HapticFeedback.lightImpact();
+                setState(() => darkMode = value);
+              },
+            ),
+            _buildModernSwitchTile(
+              Icons.notifications_rounded,
+              'Notifications',
+              'Push notifications',
+              notifications,
+              (value) {
+                HapticFeedback.lightImpact();
+                setState(() => notifications = value);
+              },
+            ),
+            _buildModernSwitchTile(
+              Icons.analytics_rounded,
+              'Analytics',
+              'Help improve ValoSync',
+              analytics,
+              (value) {
+                HapticFeedback.lightImpact();
+                setState(() => analytics = value);
+              },
+            ),
           ]),
           
-          _buildSettingsSection('Support', [
-            _buildSettingsTile(Icons.help, 'Help Center', 'Get help and support', () {}),
-            _buildSettingsTile(Icons.info, 'About', 'About ValoSync', () {
-              Navigator.pushNamed(context, '/about');
-            }),
-            _buildSettingsTile(Icons.description, 'Terms', 'Terms of Service', () {
-              Navigator.pushNamed(context, '/terms');
-            }),
+          _buildModernSettingsSection('Support', [
+            _buildModernSettingsTile(
+              Icons.help_rounded,
+              'Help Center',
+              'Get help and support',
+              () => HapticFeedback.lightImpact(),
+            ),
+            _buildModernSettingsTile(
+              Icons.info_rounded,
+              'About',
+              'About ValoSync',
+              () {
+                HapticFeedback.lightImpact();
+                Navigator.pushNamed(context, '/about');
+              },
+            ),
+            _buildModernSettingsTile(
+              Icons.description_rounded,
+              'Terms',
+              'Terms of Service',
+              () {
+                HapticFeedback.lightImpact();
+                Navigator.pushNamed(context, '/terms');
+              },
+            ),
           ]),
           
           SizedBox(height: 32),
           
           Container(
             width: double.infinity,
-            child: OutlinedButton(
-              onPressed: () {
-                Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
-              },
-              style: OutlinedButton.styleFrom(
-                side: BorderSide(color: Colors.red),
-                padding: EdgeInsets.symmetric(vertical: 16),
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.red.withOpacity(0.5), width: 2),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                borderRadius: BorderRadius.circular(16),
+                onTap: () {
+                  HapticFeedback.mediumImpact();
+                  Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
+                },
+                child: Padding(
+                  padding: EdgeInsets.symmetric(vertical: 16),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.logout_rounded, color: Colors.red),
+                      SizedBox(width: 8),
+                      Text(
+                        'Sign Out',
+                        style: TextStyle(
+                          color: Colors.red,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 16,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
-              child: Text('Sign Out', style: TextStyle(color: Colors.red)),
             ),
           ),
         ],
@@ -1012,49 +2321,138 @@ class _SettingsTabState extends State<SettingsTab> {
     );
   }
 
-  Widget _buildSettingsSection(String title, List<Widget> children) {
+  Widget _buildModernSettingsSection(String title, List<Widget> children) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          title,
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
+        Padding(
+          padding: EdgeInsets.only(left: 4, bottom: 16),
+          child: Text(
+            title,
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFFff4655),
+            ),
           ),
         ),
-        SizedBox(height: 12),
-        ...children,
+        Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Color(0xFF1e2328),
+                Color(0xFF252a30),
+              ],
+            ),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: Color(0xFF333).withOpacity(0.5), width: 1),
+          ),
+          child: Column(children: children),
+        ),
         SizedBox(height: 24),
       ],
     );
   }
 
-  Widget _buildSettingsTile(IconData icon, String title, String subtitle, VoidCallback onTap) {
-    return ListTile(
-      leading: Icon(icon, color: Color(0xFF53f9ff)),
-      title: Text(title, style: TextStyle(color: Colors.white)),
-      subtitle: Text(subtitle, style: TextStyle(color: Color(0xFF9ca3af))),
-      trailing: Icon(Icons.chevron_right, color: Color(0xFF9ca3af)),
-      onTap: onTap,
+  Widget _buildModernSettingsTile(IconData icon, String title, String subtitle, VoidCallback onTap) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: EdgeInsets.all(20),
+          child: Row(
+            children: [
+              Container(
+                padding: EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Color(0xFF53f9ff).withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(icon, color: Color(0xFF53f9ff), size: 20),
+              ),
+              SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 16,
+                      ),
+                    ),
+                    Text(
+                      subtitle,
+                      style: TextStyle(
+                        color: Color(0xFF9ca3af),
+                        fontSize: 13,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(Icons.chevron_right_rounded, color: Color(0xFF666)),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
-  Widget _buildSwitchTile(IconData icon, String title, String subtitle, bool value, Function(bool) onChanged) {
-    return ListTile(
-      leading: Icon(icon, color: Color(0xFF53f9ff)),
-      title: Text(title, style: TextStyle(color: Colors.white)),
-      subtitle: Text(subtitle, style: TextStyle(color: Color(0xFF9ca3af))),
-      trailing: Switch(
-        value: value,
-        onChanged: onChanged,
-        activeColor: Color(0xFFff4655),
+  Widget _buildModernSwitchTile(IconData icon, String title, String subtitle, bool value, Function(bool) onChanged) {
+    return Padding(
+      padding: EdgeInsets.all(20),
+      child: Row(
+        children: [
+          Container(
+            padding: EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Color(0xFF53f9ff).withOpacity(0.1),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(icon, color: Color(0xFF53f9ff), size: 20),
+          ),
+          SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 16,
+                  ),
+                ),
+                Text(
+                  subtitle,
+                  style: TextStyle(
+                    color: Color(0xFF9ca3af),
+                    fontSize: 13,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Switch(
+            value: value,
+            onChanged: onChanged,
+            activeColor: Color(0xFFff4655),
+            activeTrackColor: Color(0xFFff4655).withOpacity(0.3),
+          ),
+        ],
       ),
     );
   }
 }
 
+// Keep the existing AboutPage, PrivacyPolicyPage, and TermsPage classes as they were
 class AboutPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
