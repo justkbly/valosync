@@ -66,13 +66,21 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
     return DefaultTabController(
       length: 5,
       child: Scaffold(
-        appBar: PreferredSize(
-          preferredSize: Size.fromHeight(56),
-          child: Container(
-            color: Color(0xFF1e2328),
+        body: TabBarView(
+          physics: BouncingScrollPhysics(),
+          children: [
+            LandingPage(),
+            StatsTab(),
+            StoreTab(),
+            SocialTab(),
+            SettingsTab(),
+          ],
+        ),
+        bottomNavigationBar: Material(
+          color: Color(0xFF1e2328),
+          child: SafeArea(
+            top: false,
             child: TabBar(
-              isScrollable: true,
-              labelPadding: EdgeInsets.symmetric(horizontal: 16),
               indicatorColor: Color(0xFFff4655),
               labelColor: Color(0xFFff4655),
               unselectedLabelColor: Color(0xFFFF6666),
@@ -85,16 +93,6 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
               ],
             ),
           ),
-        ),
-        body: TabBarView(
-          physics: BouncingScrollPhysics(),
-          children: [
-            LandingPage(),
-            StatsTab(),
-            StoreTab(),
-            SocialTab(),
-            SettingsTab(),
-          ],
         ),
       ),
     );
@@ -1011,13 +1009,21 @@ class _DashboardState extends State<Dashboard> with TickerProviderStateMixin {
     return DefaultTabController(
       length: 5,
       child: Scaffold(
-        appBar: PreferredSize(
-          preferredSize: Size.fromHeight(56),
-          child: Container(
-            color: Color(0xFF1e2328),
+        body: TabBarView(
+          physics: BouncingScrollPhysics(),
+          children: [
+            HomeTab(),
+            StatsTab(),
+            StoreTab(),
+            SocialTab(),
+            SettingsTab(),
+          ],
+        ),
+        bottomNavigationBar: Material(
+          color: Color(0xFF1e2328),
+          child: SafeArea(
+            top: false,
             child: TabBar(
-              isScrollable: true,
-              labelPadding: EdgeInsets.symmetric(horizontal: 16),
               indicatorColor: Color(0xFFff4655),
               labelColor: Color(0xFFff4655),
               unselectedLabelColor: Color(0xFFFF6666),
@@ -1030,16 +1036,6 @@ class _DashboardState extends State<Dashboard> with TickerProviderStateMixin {
               ],
             ),
           ),
-        ),
-        body: TabBarView(
-          physics: BouncingScrollPhysics(),
-          children: [
-            HomeTab(),
-            StatsTab(),
-            StoreTab(),
-            SocialTab(),
-            SettingsTab(),
-          ],
         ),
       ),
     );
