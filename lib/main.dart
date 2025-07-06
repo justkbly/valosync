@@ -67,10 +67,12 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
       length: 5,
       child: Scaffold(
         appBar: PreferredSize(
-          preferredSize: Size.fromHeight(48),
+          preferredSize: Size.fromHeight(56),
           child: Container(
             color: Color(0xFF1e2328),
             child: TabBar(
+              isScrollable: true,
+              labelPadding: EdgeInsets.symmetric(horizontal: 16),
               indicatorColor: Color(0xFFff4655),
               labelColor: Color(0xFFff4655),
               unselectedLabelColor: Color(0xFFFF6666),
@@ -1010,10 +1012,12 @@ class _DashboardState extends State<Dashboard> with TickerProviderStateMixin {
       length: 5,
       child: Scaffold(
         appBar: PreferredSize(
-          preferredSize: Size.fromHeight(48),
+          preferredSize: Size.fromHeight(56),
           child: Container(
             color: Color(0xFF1e2328),
             child: TabBar(
+              isScrollable: true,
+              labelPadding: EdgeInsets.symmetric(horizontal: 16),
               indicatorColor: Color(0xFFff4655),
               labelColor: Color(0xFFff4655),
               unselectedLabelColor: Color(0xFFFF6666),
